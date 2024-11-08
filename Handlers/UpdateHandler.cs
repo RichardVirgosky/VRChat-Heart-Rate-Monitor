@@ -28,7 +28,7 @@ namespace VRChatHeartRateMonitor
 
                     if (latestVersion != currentVersion)
                     {
-                        var exeAsset = latestReleaseInfo["assets"].FirstOrDefault(a => a["name"].ToString().EndsWith(".cer", StringComparison.OrdinalIgnoreCase));
+                        var exeAsset = latestReleaseInfo["assets"].FirstOrDefault(a => a["name"].ToString().EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 
                         if (exeAsset != null)
                             UpdateAvailable?.Invoke(exeAsset["browser_download_url"].ToString(), currentVersion, latestVersion);
