@@ -480,12 +480,12 @@ namespace VRChatHeartRateMonitor
             _webServerPort = ushort.Parse(textBoxWebServerPort.Text);
             RegistryHelper.SetValue("web_server_port", _webServerPort);
 
+            HeartRateMonitor.SuccessMessageBox("Configuration saved!");
+
             if (_deviceHandler.IsListening())
             {
                 StartHandlers();
             }
-
-            HeartRateMonitor.SuccessMessageBox("Configuration saved!");
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)

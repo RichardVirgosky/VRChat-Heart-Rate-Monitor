@@ -35,7 +35,7 @@ namespace VRChatHeartRateMonitor
             ushort lastChatboxHeartRate = 0;
             ushort lastAvatarHeartRate = 0;
 
-            while (_cancellationTokenSource?.IsCancellationRequested != true)
+            while (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
             {
                 ushort heartRate = RequestHeartRate();
 
