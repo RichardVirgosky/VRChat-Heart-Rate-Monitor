@@ -21,36 +21,30 @@ namespace VRChatHeartRateMonitor
                     string currentFilePath = Assembly.GetExecutingAssembly().Location;
 
                     string oldVersionDirectoryFilePath = args[0];
-                    string oldVersionTmpDirectoryFilePath = args[1];
+                    string oldVersionTmpDirectoryFilePath = args[1];//unused, kept for compatibility with v0.1
                     string newVersionTmpFilePath = args[2];
 
-                    if (currentFilePath == newVersionTmpFilePath)
+                    if (currentFilePath == newVersionTmpFilePath && IsFileAvailable(oldVersionDirectoryFilePath, TimeSpan.FromSeconds(10)))
                     {
-                        KillProcessByPath(oldVersionDirectoryFilePath);
-                        File.Move(oldVersionDirectoryFilePath, oldVersionTmpDirectoryFilePath);
-                        Process.Start(oldVersionTmpDirectoryFilePath, $"\"{oldVersionDirectoryFilePath}\" \"{oldVersionTmpDirectoryFilePath}\" \"{newVersionTmpFilePath}\"");
-                    }
-                    else if (currentFilePath == oldVersionTmpDirectoryFilePath)
-                    {
-                        KillProcessByPath(newVersionTmpFilePath);
-                        File.Move(newVersionTmpFilePath, oldVersionDirectoryFilePath);
+                        File.Delete(oldVersionDirectoryFilePath);
+                        File.Copy(newVersionTmpFilePath, oldVersionDirectoryFilePath);
+
                         Process.Start(oldVersionDirectoryFilePath, $"\"{oldVersionDirectoryFilePath}\" \"{oldVersionTmpDirectoryFilePath}\" \"{newVersionTmpFilePath}\"");
                     }
-                    else if (currentFilePath == oldVersionDirectoryFilePath)
+                    else if (currentFilePath == oldVersionDirectoryFilePath && IsFileAvailable(newVersionTmpFilePath, TimeSpan.FromSeconds(10)))
                     {
-                        KillProcessByPath(oldVersionTmpDirectoryFilePath);
-                        File.Delete(oldVersionTmpDirectoryFilePath);
-
+                        File.Delete(newVersionTmpFilePath);
                         SuccessMessageBox("Application updated successfully!");
-
                         Process.Start(oldVersionDirectoryFilePath);
                     }
-
-                    Application.Exit();
+                    else
+                    {
+                        ErrorMessageBox("The update process couldn't be completed, try downloading the program manually from the project page on github!");
+                    }
                 }
                 catch (Exception) 
                 {
-                    ErrorMessageBox("An error occurred during the update process. Please try again or download the application again from the official source!");
+                    ErrorMessageBox("An error occurred during the update process. Please try again or download the application again from the official github soure!");
                 }
             }
             else if (!DeviceHandler.CheckCompatibility().Result)
@@ -112,21 +106,24 @@ namespace VRChatHeartRateMonitor
             return $"{assemblyVersion.Major}.{assemblyVersion.Minor}";
         }
 
-        public static void KillProcessByPath(string fullPath)
+        public static bool IsFileAvailable(string filePath, TimeSpan timeout)
         {
-            string processName = Path.GetFileNameWithoutExtension(fullPath);
+            DateTime endTime = DateTime.Now + timeout;
 
-            var processes = Process.GetProcessesByName(processName);
-
-            foreach (var process in processes)
+            while (DateTime.Now < endTime)
             {
-                if (string.Equals(process.MainModule.FileName, fullPath, StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    process.Kill();
-                    process.WaitForExit();
-
+                    using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                        return true;
+                }
+                catch (IOException)
+                {
+                    Thread.Sleep(100);
                 }
             }
+
+            return false;
         }
     }
 }
