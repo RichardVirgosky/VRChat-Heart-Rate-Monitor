@@ -189,7 +189,9 @@ namespace VRChatHeartRateMonitor
 
                         if (pairingResult.Status == DevicePairingResultStatus.Paired || pairingResult.Status == DevicePairingResultStatus.AlreadyPaired)
                         {
-                            await Task.Delay(5000);
+                            _device.Dispose();
+
+                            await Task.Delay(15000);
 
                             SubscribeToDevice(bluetoothDeviceAddress);
                             return;
