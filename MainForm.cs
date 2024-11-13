@@ -1,23 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Text;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Windows.Devices.Bluetooth;
-using Windows.Devices.Enumeration;
-using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using Windows.Storage.Streams;
 using System.Diagnostics;
-using System.Security.Policy;
 
 namespace VRChatHeartRateMonitor
 {
@@ -27,7 +16,7 @@ namespace VRChatHeartRateMonitor
 
         private System.Windows.Forms.Timer _heartbeatEffectTimer;
         private DeviceHandler _deviceHandler;
-        private Dictionary<string, BluetoothLEDevice> _deviceMap = new Dictionary<string, BluetoothLEDevice>();
+        private Dictionary<ulong, string> _deviceMap = new Dictionary<ulong, string>();
 
         private CancellationTokenSource _autoConnectCountdownCancellationToken;
 
@@ -233,22 +222,21 @@ namespace VRChatHeartRateMonitor
             });
         }
 
-        private void DeviceManager_DeviceFound(BluetoothLEDevice device)
+        private void DeviceManager_DeviceFound(ulong bluetoothDeviceAddress, string bluetoothDeviceName)
         {
-            SafeInvoke(() => AddDeviceToComboBox(device));
+            SafeInvoke(() => AddDeviceToComboBox(bluetoothDeviceAddress, bluetoothDeviceName));
         }
 
-        private void DeviceManager_DeviceConnecting(BluetoothLEDevice device)
+        private void DeviceManager_DeviceConnecting()
         {
             SafeInvoke(() => {
-                _deviceMap[_deviceHandler.GetDeviceName(device)] = device;
                 buttonExecute.Text = "CONNECTING...";
                 buttonExecute.Enabled = false;
                 comboBoxDevices.Enabled = false;
             });
         }
 
-        private void DeviceManager_DeviceConnected(BluetoothLEDevice device)
+        private void DeviceManager_DeviceConnected(ulong bluetoothDeviceAddress)
         {
             SafeInvoke(() => {
                 buttonExecute.Text = "DISCONNECT";
@@ -258,7 +246,7 @@ namespace VRChatHeartRateMonitor
 
                 StartHandlers();
 
-                _lastConnectedDeviceAddress = _deviceHandler.GetDeviceAddress(device);
+                _lastConnectedDeviceAddress = _deviceHandler.BluetoothAddressToString(bluetoothDeviceAddress);
                 RegistryHelper.SetValue("last_connected_device_address", _lastConnectedDeviceAddress);
             });
         }
@@ -291,6 +279,7 @@ namespace VRChatHeartRateMonitor
         private void DeviceManager_DeviceError(string message)
         {
             SafeInvoke(() => {
+                message += "\n\nPlease try reconnecting. If the issue persists, follow these simple troubleshooting steps:\n\n1. Restart the app.\n2. Toggle Bluetooth off, wait 10 seconds, then turn it back on.\n3. Restart your heart rate monitor.\n\nNote: Even if you resolve the issue, please report it on our Discord server to help us improve the app.";
                 HeartRateMonitor.ErrorMessageBox(message);
             });
         }
@@ -309,7 +298,7 @@ namespace VRChatHeartRateMonitor
             });
         }
 
-        private void AddDeviceToComboBox(BluetoothLEDevice Device)
+        private void AddDeviceToComboBox(ulong bluetoothDeviceAddress, string bluetoothDeviceName)
         {
             if (_deviceMap.Count == 0)
             {
@@ -317,24 +306,22 @@ namespace VRChatHeartRateMonitor
                 buttonExecute.Enabled = true;
             }
 
-            string DeviceDisplayName = _deviceHandler.GetDeviceName(Device);
 
-
-            if (!_deviceMap.ContainsKey(DeviceDisplayName))
+            if (!_deviceMap.ContainsKey(bluetoothDeviceAddress))
             {
-                _deviceMap.Add(DeviceDisplayName, Device);
-                comboBoxDevices.Items.Add(DeviceDisplayName);
+                _deviceMap.Add(bluetoothDeviceAddress, bluetoothDeviceName);
+                comboBoxDevices.Items.Add(bluetoothDeviceName);
 
                 if (comboBoxDevices.DroppedDown)
                 {
                     comboBoxDevices.DroppedDown = false;
                     comboBoxDevices.DroppedDown = true;
                 }
-
-                if (_lastConnectedDeviceAddress == _deviceHandler.GetDeviceAddress(Device))
+                
+                if (_lastConnectedDeviceAddress == _deviceHandler.BluetoothAddressToString(bluetoothDeviceAddress))
                 {
                     comboBoxDevices.SelectedIndex = comboBoxDevices.Items.Count - 1;
-                    StartAutoConnectCountdown(Device);
+                    StartAutoConnectCountdown(bluetoothDeviceAddress);
                     comboBoxDevices.DroppedDown = false;
                 }
                 else if (comboBoxDevices.Items.Count == 1)
@@ -374,7 +361,7 @@ namespace VRChatHeartRateMonitor
                 _webServerHandler.Stop();
         }
 
-        private async void StartAutoConnectCountdown(BluetoothLEDevice Device)
+        private async void StartAutoConnectCountdown(ulong bluetoothDeviceAddress)
         {
             _autoConnectCountdownCancellationToken = new CancellationTokenSource();
 
@@ -387,7 +374,7 @@ namespace VRChatHeartRateMonitor
                     await Task.Delay(1000, _autoConnectCountdownCancellationToken.Token);
                 }
 
-                _deviceHandler.SubscribeToDevice(Device);
+                _deviceHandler.SubscribeToDevice(bluetoothDeviceAddress);
             }
             catch (TaskCanceledException)
             {
@@ -409,13 +396,15 @@ namespace VRChatHeartRateMonitor
             }
             else if(_deviceHandler.CanConnect())
             {
-                if (comboBoxDevices.SelectedItem == null || !_deviceMap.TryGetValue(comboBoxDevices.SelectedItem.ToString(), out BluetoothLEDevice selectedDevice))
+                ulong? selectedBluetoothDeviceAddress = _deviceMap.FirstOrDefault(d => d.Value == comboBoxDevices.SelectedItem.ToString()).Key;
+
+                if (comboBoxDevices.SelectedItem == null || selectedBluetoothDeviceAddress == null)
                 {
                     HeartRateMonitor.ErrorMessageBox("Please select device from the list!");
                     return;
                 }
 
-                _deviceHandler.SubscribeToDevice(selectedDevice);
+                _deviceHandler.SubscribeToDevice((ulong)selectedBluetoothDeviceAddress);
             }
         }
 

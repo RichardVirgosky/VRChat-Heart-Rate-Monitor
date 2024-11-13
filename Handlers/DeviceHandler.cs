@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Advertisement;
@@ -31,9 +30,9 @@ namespace VRChatHeartRateMonitor
         private string _errorMessage = null;
 
         public event Action AdapterError;
-        public event Action<BluetoothLEDevice> DeviceFound;
-        public event Action<BluetoothLEDevice> DeviceConnecting;
-        public event Action<BluetoothLEDevice> DeviceConnected;
+        public event Action<ulong, string> DeviceFound;
+        public event Action DeviceConnecting;
+        public event Action<ulong> DeviceConnected;
         public event Action DeviceDisconnecting;
         public event Action DeviceDisconnected;
         public event Action<string> DeviceError;
@@ -81,7 +80,7 @@ namespace VRChatHeartRateMonitor
 
                     if (result.Status == GattCommunicationStatus.Success && result.Services.Count > 0)
                     {
-                        DeviceFound?.Invoke(bluetoothDevice);
+                        DeviceFound?.Invoke(bluetoothDevice.BluetoothAddress, GetDeviceName(bluetoothDevice));
                     }
                 }
             }
@@ -163,11 +162,11 @@ namespace VRChatHeartRateMonitor
             return await UnsubscibeToCharacteristicNotifications(_batteryLevelCharacteristic);
         }
 
-        public async void SubscribeToDevice(BluetoothLEDevice device)
+        public async void SubscribeToDevice(ulong bluetoothDeviceAddress)
         {
-            DeviceConnecting?.Invoke(device);
+            DeviceConnecting?.Invoke();
 
-            _device = device;
+            _device = await BluetoothLEDevice.FromBluetoothAddressAsync(bluetoothDeviceAddress);
             _errorMessage = null;
 
             _heartRate = 0;
@@ -175,8 +174,11 @@ namespace VRChatHeartRateMonitor
 
             try
             {
-
-                if (!_device.DeviceInformation.Pairing.IsPaired)
+                if (_device == null)
+                {
+                    _errorMessage = "Bluetooth device error - Couldn't connect to the device!";
+                }
+                else if (!_device.DeviceInformation.Pairing.IsPaired)
                 {
                     if (_device.DeviceInformation.Pairing.CanPair)
                     {
@@ -188,7 +190,8 @@ namespace VRChatHeartRateMonitor
                         if (pairingResult.Status == DevicePairingResultStatus.Paired || pairingResult.Status == DevicePairingResultStatus.AlreadyPaired)
                         {
                             await Task.Delay(5000);
-                            SubscribeToDevice(await BluetoothLEDevice.FromBluetoothAddressAsync(device.BluetoothAddress));
+
+                            SubscribeToDevice(bluetoothDeviceAddress);
                             return;
                         }
                         else
@@ -201,8 +204,7 @@ namespace VRChatHeartRateMonitor
                         _errorMessage = "Bluetooth device error - Can't pair with the device!";
                     }
                 }
-
-                if (_device.DeviceInformation.Pairing.IsPaired)
+                else
                 {
                     _heartRateCharacteristic = GetHeartRateCharacteristic();
 
@@ -231,7 +233,7 @@ namespace VRChatHeartRateMonitor
                                 }
                             }
 
-                            DeviceConnected?.Invoke(_device);
+                            DeviceConnected?.Invoke(_device.BluetoothAddress);
                         }
                         else
                         {
@@ -240,12 +242,8 @@ namespace VRChatHeartRateMonitor
                     }
                     else
                     {
-                        _errorMessage = "Bluetooth device error - Selected Bluetooth device is not a heart rate monitor!";
+                        _errorMessage = "Bluetooth device error - Couldn't find the heart rate characteristic!";
                     }
-                }
-                else
-                {
-                    _errorMessage = "Bluetooth device error - Couldn't pair with the device!";
                 }
             }
             catch (Exception)
@@ -278,15 +276,18 @@ namespace VRChatHeartRateMonitor
             if (_heartRateCharacteristic != null)
             {
                 await UnsubscibeToHeartRateCharacteristicNotifications();
+                _heartRateCharacteristic?.Service?.Dispose();
                 _heartRateCharacteristic = null;
 
                 if (_batteryLevelCharacteristic != null)
                 {
                     await UnsubscibeToBatteryLevelCharacteristicNotifications();
+                    _batteryLevelCharacteristic?.Service?.Dispose();
                     _batteryLevelCharacteristic = null;
                 }
             }
 
+            _device?.Dispose();
             _device = null;
 
             DeviceDisconnected?.Invoke();
@@ -350,14 +351,17 @@ namespace VRChatHeartRateMonitor
             return _heartRate;
         }
 
+        public string BluetoothAddressToString(ulong bluetoothAddress)
+        {
+            return string.Join(":", Enumerable.Range(0, 6).Select(i => $"{bluetoothAddress:X12}".Substring(i * 2, 2)));
+        }
+
         public string GetDeviceAddress(BluetoothLEDevice bluetoothDevice = null)
         {
             if (bluetoothDevice == null)
                 bluetoothDevice = _device;
 
-            string parsedDeviceAddress = $"{bluetoothDevice.BluetoothAddress:X12}";
-
-            return string.Join(":", Enumerable.Range(0, 6).Select(i => parsedDeviceAddress.Substring(i * 2, 2)));
+            return BluetoothAddressToString(bluetoothDevice.BluetoothAddress);
         }
 
         public string GetDeviceName(BluetoothLEDevice bluetoothDevice = null)
