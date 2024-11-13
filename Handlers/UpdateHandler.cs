@@ -43,13 +43,6 @@ namespace VRChatHeartRateMonitor
             try
             {
                 string oldVersionDirectoryFilePath = Assembly.GetExecutingAssembly().Location;
-                string oldVersionTmpDirectoryFilePath;
-
-                do
-                {
-                    oldVersionTmpDirectoryFilePath = Path.Combine(Path.GetDirectoryName(oldVersionDirectoryFilePath), $"{Guid.NewGuid()}.exe");
-                } while (File.Exists(oldVersionTmpDirectoryFilePath));
-
                 string newVersionTmpFilePath;
 
                 do
@@ -64,7 +57,7 @@ namespace VRChatHeartRateMonitor
                     webClient.DownloadFile(updateUrl, newVersionTmpFilePath);
                 }
 
-                Process.Start(newVersionTmpFilePath, $"\"{oldVersionDirectoryFilePath}\" \"{oldVersionTmpDirectoryFilePath}\" \"{newVersionTmpFilePath}\"");
+                Process.Start(newVersionTmpFilePath, $"\"{oldVersionDirectoryFilePath}\" \"null\" \"{newVersionTmpFilePath}\"");
 
                 return true;
             }
