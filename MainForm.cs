@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing.Text;
+using System.Runtime.InteropServices;
+using System.Net;
 
 namespace VRChatHeartRateMonitor
 {
@@ -179,6 +181,10 @@ namespace VRChatHeartRateMonitor
             this.Text = HeartRateMonitor.GetAssemblyTitle();
             labelInfoAppName.Text = HeartRateMonitor.GetAssemblyTitle();
 
+            textBoxOscAddress.Text = _oscAddress;
+            textBoxOscAddress.KeyPress += new KeyPressEventHandler(textBox_KeyPressIp);
+            textBoxOscAddress.Leave += new EventHandler(textBoxOscAddress_Leave);
+
             checkBoxUseChatbox.Checked = _useChatbox;
             checkBoxUseChatbox_CheckedChanged(checkBoxUseChatbox, EventArgs.Empty);
 
@@ -196,6 +202,15 @@ namespace VRChatHeartRateMonitor
             textBoxWebServerPort.Text = _webServerPort.ToString();
             textBoxWebServerPort.KeyPress += new KeyPressEventHandler(textBox_KeyPressNumeric);
             textBoxWebServerPort.Leave += new EventHandler(textBoxWebServerPort_Leave);
+
+            textBoxWebServerHtml.Text = _webServerHtml;
+
+            checkBoxUseDiscord.Checked = _useDiscord;
+            checkBoxUseDiscord_CheckedChanged(checkBoxUseDiscord, EventArgs.Empty);
+
+            textBoxDiscordActiveText.Text = _discordActiveText;
+            textBoxDiscordIdleText.Text = _discordIdleText;
+            textBoxDiscordStateText.Text = _discordStateText;
 
             notifyIcon.MouseClick += NotifyIcon_MouseClick;
 
@@ -472,28 +487,19 @@ namespace VRChatHeartRateMonitor
         private void checkBoxUseChatbox_CheckedChanged(object sender, EventArgs e)
         {
             comboBoxChatboxAppearance.Enabled = checkBoxUseChatbox.Checked;
+            textBoxOscAddress.ReadOnly = !(checkBoxUseChatbox.Checked || checkBoxUseAvatar.Checked);
         }
 
         private void checkBoxUseAvatar_CheckedChanged(object sender, EventArgs e)
         {
             textBoxAvatarParameter.ReadOnly = !checkBoxUseAvatar.Checked;
-        }
-
-        private void textBox_KeyPressAlphanumeric(object sender, KeyPressEventArgs e)
-        {
-            if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
-                e.Handled = true;
+            textBoxOscAddress.ReadOnly = !(checkBoxUseChatbox.Checked || checkBoxUseAvatar.Checked);
         }
 
         private void checkBoxUseWebServer_CheckedChanged(object sender, EventArgs e)
         {
             textBoxWebServerPort.ReadOnly = !checkBoxUseWebServer.Checked;
-        }
-
-        private void textBox_KeyPressNumeric(object sender, KeyPressEventArgs e)
-        {
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                e.Handled = true;
+            textBoxWebServerHtml.ReadOnly = !checkBoxUseWebServer.Checked;
         }
 
         private void textBoxWebServerPort_Leave(object sender, EventArgs e)
@@ -506,9 +512,59 @@ namespace VRChatHeartRateMonitor
             }
         }
 
-        private void AvatarParameterInfo_Click(object sender, EventArgs e)
+        private void textBoxOscAddress_Leave(object sender, EventArgs e)
+        {
+
+            string[] parts = textBoxOscAddress.Text.Split(':');
+
+            if (parts.Length == 2)
+            {
+                string ipPart = parts[0];
+                string portPart = parts[1];
+
+                if (IPAddress.TryParse(ipPart, out IPAddress ip) && ip.ToString() == ipPart)
+                    if (int.TryParse(portPart, out int port) && port >= 1 && port <= 65535)
+                        return;
+            }
+
+            textBoxOscAddress.Text = _oscAddress.ToString();
+            textBoxOscAddress.Focus();
+            HeartRateMonitor.InfoMessageBox("Invalid format for VRChat OSC address IP and PORT!");
+        }
+
+        private void checkBoxUseDiscord_CheckedChanged(object sender, EventArgs e)
+        {
+            textBoxDiscordActiveText.ReadOnly = !checkBoxUseDiscord.Checked;
+            textBoxDiscordIdleText.ReadOnly = !checkBoxUseDiscord.Checked;
+            textBoxDiscordStateText.ReadOnly = !checkBoxUseDiscord.Checked;
+        }
+
+        private void textBox_KeyPressAlphanumeric(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsLetterOrDigit(e.KeyChar))
+                e.Handled = true;
+        }
+
+        private void textBox_KeyPressNumeric(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                e.Handled = true;
+        }
+
+        private void textBox_KeyPressIp(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && e.KeyChar != ':' && e.KeyChar != '.')
+                e.Handled = true;
+        }
+
+        private void buttonAvatarParameterInfo_Click(object sender, EventArgs e)
         {
             HeartRateMonitor.InfoMessageBox($"To use this option you need to edit your VRChat avatar in Unity. New float paramater /avatar/parameters/{_avatarParameter} (from -1.0 to 1.0 - precision of 1/127) will be send through VRChat OSC. You need to add it to parameters, make sure that it's syncedm but not saved, and create animation which displays the heart rate. For more details about avatar configuration check Richard's video ;)");
+        }
+
+        private void buttonOscAddressInfo_Click(object sender, EventArgs e)
+        {
+            HeartRateMonitor.InfoMessageBox($"According to documentation, VRChat receives data via OSC on port 9000.\n\nIn most cases, you should keep the default address 127.0.0.1:9000 unless you have a specific reason to change it.\n\nMore info: https://docs.vrchat.com/docs/osc-overview");
         }
 
         private void buttonWebServerPortInfo_Click(object sender, EventArgs e)
@@ -516,12 +572,15 @@ namespace VRChatHeartRateMonitor
             HeartRateMonitor.InfoMessageBox($"This option is useful for streamers or more advanced users who wants to do something more with capetured heart rate data, it'll be availabe at http://localohst:{_webServerPort} (make sure to configure port that isn't already taken) so you can display it in OBS or do whatever you want with it.");
         }
 
-        private void buttonSave_Click(object sender, EventArgs e)
+        private void buttonSaveSettings_Click(object sender, EventArgs e)
         {
             if (_deviceHandler.IsListening())
             {
                 StopHandlers();
             }
+
+            _oscAddress = textBoxOscAddress.Text;
+            RegistryHelper.SetValue("osc_address", _oscAddress);
 
             _useChatbox = checkBoxUseChatbox.Checked;
             RegistryHelper.SetValue("use_chatbox", _useChatbox);
@@ -540,6 +599,21 @@ namespace VRChatHeartRateMonitor
 
             _webServerPort = ushort.Parse(textBoxWebServerPort.Text);
             RegistryHelper.SetValue("web_server_port", _webServerPort);
+
+            _webServerHtml = textBoxWebServerHtml.Text;
+            RegistryHelper.SetValue("web_server_html", _webServerHtml);
+
+            _useDiscord = checkBoxUseDiscord.Checked;
+            RegistryHelper.SetValue("use_discord", _useDiscord);
+
+            _discordActiveText = textBoxDiscordActiveText.Text;
+            RegistryHelper.SetValue("discord_active_text", _discordActiveText);
+
+            _discordIdleText = textBoxDiscordIdleText.Text;
+            RegistryHelper.SetValue("discord_idle_text", _discordIdleText);
+
+            _discordStateText = textBoxDiscordStateText.Text;
+            RegistryHelper.SetValue("discord_state_text", _discordStateText);
 
             HeartRateMonitor.SuccessMessageBox("Configuration saved!");
 
