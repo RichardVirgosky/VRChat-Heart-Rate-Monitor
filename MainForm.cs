@@ -251,8 +251,8 @@ namespace VRChatHeartRateMonitor
         {
             for (int i = 0; i <= 1; i++)
             {
-                panelHeartRateDisplay.Padding = new Padding(i == 1 ? 0 : 4);
-
+                int paddingValue = (i == 1 ? 0 : 4);
+                panelHeartRateDisplay.Padding = new Padding(0, paddingValue, 0, paddingValue);
                 await Task.Delay(_heartbeatEffectTimer.Interval / 2);
             }
         }
