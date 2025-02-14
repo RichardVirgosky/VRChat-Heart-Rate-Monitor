@@ -60,6 +60,7 @@ namespace VRChatHeartRateMonitor
         {
             _client?.ClearPresence();
             _client?.Dispose();
+            _client = null;
         }
     }
 }
