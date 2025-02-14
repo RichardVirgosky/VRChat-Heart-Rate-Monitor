@@ -54,7 +54,7 @@ namespace VRChatHeartRateMonitor
             else if (_mutex.WaitOne(TimeSpan.Zero, true))
             {
                 Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
+                Application.SetCompatibleTextRenderingDefault(true);
 
                 MainForm mainForm = new MainForm();
 
