@@ -41,6 +41,8 @@ namespace VRChatHeartRateMonitor
 
         private bool _useWebServer = false;
         private ushort _webServerPort = 6969;
+        private string _webServerHtml = "<!-- Use own HTML/JS \"{0}\" will be replaced with HR value -->\r\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 24 24\" style=\"position: relative;\">\r\n<path d=\"M12 4.248c-3.148-5.402-12-3.825-12 2.944 0 4.661 5.571 9.427 12 15.808 6.43-6.381 12-11.147 12-15.808 0-6.792-8.875-8.306-12-2.944z\" fill=\"red\"/>\r\n<text x=\"50%\" y=\"47%\" font-size=\"10\" text-anchor=\"middle\" alignment-baseline=\"middle\" fill=\"white\" font-weight=\"bold\" font-family=\"monospace\">{0}</text>\r\n</svg>";
+
         private bool _useDiscord = true;
         private string _discordActiveText = "Using my VRC Heart Rate Monitor!";
         private string _discordIdleText = "Ideling with my VRC Heart Rate Monitor!";
@@ -114,6 +116,7 @@ namespace VRChatHeartRateMonitor
 
             _useWebServer = RegistryHelper.GetValue("use_web_server", _useWebServer);
             _webServerPort = ushort.Parse(RegistryHelper.GetValue("web_server_port", _webServerPort.ToString()));
+            _webServerHtml = RegistryHelper.GetValue("web_server_html", _webServerHtml);
 
             _useDiscord = RegistryHelper.GetValue("use_discord", _useDiscord);
             _discordActiveText = RegistryHelper.GetValue("discord_active_text", _discordActiveText);
@@ -401,7 +404,8 @@ namespace VRChatHeartRateMonitor
                 _vrchatOscHandler.Start(_useChatbox, _chatboxAppearance, _useAvatar, _avatarParameter, _oscAddress);
 
             if (_useWebServer)
-                _webServerHandler.Start(_webServerPort);
+                _webServerHandler.Start(_webServerPort, _webServerHtml);
+
             if (_useDiscord)
                 _discordHandler.Start(_discordActiveText, _discordIdleText, _discordStateText);
         }
