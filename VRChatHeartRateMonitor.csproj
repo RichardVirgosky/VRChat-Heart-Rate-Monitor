@@ -240,6 +240,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Resources\CascadiaMono.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\heart.png" />

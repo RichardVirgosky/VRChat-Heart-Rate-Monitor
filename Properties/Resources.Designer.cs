@@ -71,6 +71,16 @@ namespace VRChatHeartRateMonitor.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] CascadiaMono {
+            get {
+                object obj = ResourceManager.GetObject("CascadiaMono", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap discord {

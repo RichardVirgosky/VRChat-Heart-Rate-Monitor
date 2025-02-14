@@ -7,11 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing.Text;
 
 namespace VRChatHeartRateMonitor
 {
     public partial class MainForm : Form
     {
+        private PrivateFontCollection _privateFonts = new PrivateFontCollection();
+
         private UpdateHandler _updateHandler;
 
         private System.Windows.Forms.Timer _heartbeatEffectTimer;
@@ -39,6 +42,7 @@ namespace VRChatHeartRateMonitor
         public MainForm()
         {
             InitializeComponent();
+            InitializeFont();
             InitializeConfig();
             InitializeIcons();
             InitializeForm();
@@ -59,6 +63,33 @@ namespace VRChatHeartRateMonitor
                 catch (ObjectDisposedException){}
             else
                 action();
+        }
+
+        private void InitializeFont()
+        {
+            int fontLength = Properties.Resources.CascadiaMono.Length;
+
+            IntPtr data = Marshal.AllocCoTaskMem(fontLength);
+
+            Marshal.Copy(Properties.Resources.CascadiaMono, 0, data, fontLength);
+
+            _privateFonts.AddMemoryFont(data, fontLength);
+
+            Marshal.FreeCoTaskMem(data);
+
+            OverRideControlFont(this);
+        }
+
+        private void OverRideControlFont(Control parentControl)
+        {
+            foreach (Control control in parentControl.Controls)
+            {
+                if (control.Font.Name == "Cascadia Mono")
+                    control.Font = new Font(_privateFonts.Families[0], control.Font.Size, control.Font.Style);
+
+                if (control.Controls.Count > 0)
+                    OverRideControlFont(control);
+            }
         }
 
         private void InitializeConfig()
@@ -86,7 +117,7 @@ namespace VRChatHeartRateMonitor
                 if (i > 0)
                 {
                     using (Graphics graphics = Graphics.FromImage(smalIcon))
-                    using (Font font = new Font("Cascadia Mono", 14, FontStyle.Bold))
+                    using (Font font = new Font(_privateFonts.Families[0], 14, FontStyle.Bold))
                         graphics.DrawString(i.ToString(), font, Brushes.Yellow, new PointF((i >= 100 ? -4 : 3), 4));
                 }
 
