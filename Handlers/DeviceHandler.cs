@@ -162,7 +162,7 @@ namespace VRChatHeartRateMonitor
             return await UnsubscibeToCharacteristicNotifications(_batteryLevelCharacteristic);
         }
 
-        public async void SubscribeToDevice(ulong bluetoothDeviceAddress)
+        public async void SubscribeToDevice(ulong bluetoothDeviceAddress, ushort attempt = 0)
         {
             DeviceConnecting?.Invoke();
 
@@ -237,6 +237,11 @@ namespace VRChatHeartRateMonitor
 
                             DeviceConnected?.Invoke(_device.BluetoothAddress);
                         }
+                        else if (++attempt <= 3)
+                        {
+                            await Task.Delay(1000 * attempt);
+                            SubscribeToDevice(bluetoothDeviceAddress, attempt);
+                        }
                         else
                         {
                             _errorMessage = "Bluetooth device error - Couldn't subscribe to the characteristic notifications!";
@@ -250,7 +255,13 @@ namespace VRChatHeartRateMonitor
             }
             catch (Exception)
             {
-                _errorMessage = "Bluetooth device error - Unexpected failure!";
+                if (++attempt <= 3)
+                {
+                    await Task.Delay(1000 * attempt);
+                    SubscribeToDevice(bluetoothDeviceAddress, attempt);
+                }
+                else
+                    _errorMessage = "Bluetooth device error - Unexpected failure!";
             }
 
             if (_errorMessage != null)
@@ -291,6 +302,9 @@ namespace VRChatHeartRateMonitor
 
             _device?.Dispose();
             _device = null;
+
+            _heartRate = 0;
+            HeartRateUpdated?.Invoke(_heartRate);
 
             DeviceDisconnected?.Invoke();
         }
