@@ -25,6 +25,7 @@ namespace VRChatHeartRateMonitor
 
         private VRChatOscHandler _vrchatOscHandler;
         private WebServerHandler _webServerHandler;
+        private DiscordHandler _discordHandler;
 
         private List<Icon> _icons = new List<Icon>();
 
@@ -40,6 +41,10 @@ namespace VRChatHeartRateMonitor
 
         private bool _useWebServer = false;
         private ushort _webServerPort = 6969;
+        private bool _useDiscord = true;
+        private string _discordActiveText = "Using my VRC Heart Rate Monitor!";
+        private string _discordIdleText = "Ideling with my VRC Heart Rate Monitor!";
+        private string _discordStateText = "{0} BPM";
 
         public MainForm()
         {
@@ -53,6 +58,7 @@ namespace VRChatHeartRateMonitor
             InitializeDeviceHandler();
             InitializeVRChatOscHandler();
             InitializeWebServerHandler();
+            InitializeDiscordHandler();
         }
 
         private void SafeInvoke(Action action)
@@ -108,6 +114,11 @@ namespace VRChatHeartRateMonitor
 
             _useWebServer = RegistryHelper.GetValue("use_web_server", _useWebServer);
             _webServerPort = ushort.Parse(RegistryHelper.GetValue("web_server_port", _webServerPort.ToString()));
+
+            _useDiscord = RegistryHelper.GetValue("use_discord", _useDiscord);
+            _discordActiveText = RegistryHelper.GetValue("discord_active_text", _discordActiveText);
+            _discordIdleText = RegistryHelper.GetValue("discord_idle_text", _discordIdleText);
+            _discordStateText = RegistryHelper.GetValue("discord_state_text", _discordStateText);
         }
 
         private void InitializeIcons()
@@ -378,6 +389,12 @@ namespace VRChatHeartRateMonitor
             _webServerHandler.RequestHeartRate = (() => _deviceHandler.GetHeartRate());
         }
 
+        private void InitializeDiscordHandler()
+        {
+            _discordHandler = new DiscordHandler();
+            _discordHandler.RequestHeartRate = (() => _deviceHandler.GetHeartRate());
+        }
+
         private void StartHandlers()
         {
             if (_useChatbox || _useAvatar)
@@ -385,6 +402,8 @@ namespace VRChatHeartRateMonitor
 
             if (_useWebServer)
                 _webServerHandler.Start(_webServerPort);
+            if (_useDiscord)
+                _discordHandler.Start(_discordActiveText, _discordIdleText, _discordStateText);
         }
 
         private void StopHandlers()
@@ -394,6 +413,9 @@ namespace VRChatHeartRateMonitor
 
             if (_useWebServer)
                 _webServerHandler.Stop();
+
+            if(_useDiscord)
+                _discordHandler.Stop();
         }
 
         private async void StartAutoConnectCountdown(ulong bluetoothDeviceAddress)
@@ -532,6 +554,9 @@ namespace VRChatHeartRateMonitor
 
             _webServerHandler.RequestHeartRate = null;
             _webServerHandler = null;
+
+            _discordHandler.RequestHeartRate = null;
+            _discordHandler = null;
 
             _deviceHandler.AdapterError -= DeviceManager_AdapterError;
             _deviceHandler.DeviceFound -= DeviceManager_DeviceFound;
