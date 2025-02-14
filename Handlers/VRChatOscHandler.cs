@@ -23,7 +23,7 @@ namespace VRChatHeartRateMonitor
             "💘"
         };
 
-        public async void Start(bool useChatbox, ushort chatboxAppearance, bool useAvatar, string avatarParameter)
+        public async void Start(bool useChatbox, ushort chatboxAppearance, bool useAvatar, string avatarParameter, string oscAddress)
         {
             _cancellationTokenSource = new CancellationTokenSource();
 
@@ -34,6 +34,14 @@ namespace VRChatHeartRateMonitor
 
             ushort lastChatboxHeartRate = 0;
             ushort lastAvatarHeartRate = 0;
+
+            string[] oscAddressArray = oscAddress.Split(':');
+
+            if (oscAddressArray.Length == 2)
+            {
+                OscConnectionSettings.VrcIPAddress = oscAddressArray[0];
+                OscConnectionSettings.SendPort = int.Parse(oscAddressArray[1]);
+            }
 
             while (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
             {

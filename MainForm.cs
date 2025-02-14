@@ -30,6 +30,8 @@ namespace VRChatHeartRateMonitor
 
         private string _lastConnectedDeviceAddress = "";
 
+        private string _oscAddress = "127.0.0.1:9000";
+
         private bool _useChatbox = true;
         private ushort _chatboxAppearance = 0;
 
@@ -95,6 +97,8 @@ namespace VRChatHeartRateMonitor
         private void InitializeConfig()
         {
             _lastConnectedDeviceAddress = RegistryHelper.GetValue("last_connected_device_address", _lastConnectedDeviceAddress);
+
+            _oscAddress = RegistryHelper.GetValue("osc_address", _oscAddress);
 
             _useChatbox = RegistryHelper.GetValue("use_chatbox", _useChatbox);
             _chatboxAppearance = ushort.Parse(RegistryHelper.GetValue("chatbox_appearance", _chatboxAppearance.ToString()));
@@ -377,7 +381,7 @@ namespace VRChatHeartRateMonitor
         private void StartHandlers()
         {
             if (_useChatbox || _useAvatar)
-                _vrchatOscHandler.Start(_useChatbox, _chatboxAppearance, _useAvatar, _avatarParameter);
+                _vrchatOscHandler.Start(_useChatbox, _chatboxAppearance, _useAvatar, _avatarParameter, _oscAddress);
 
             if (_useWebServer)
                 _webServerHandler.Start(_webServerPort);
