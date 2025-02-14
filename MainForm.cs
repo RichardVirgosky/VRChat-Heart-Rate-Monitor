@@ -294,6 +294,8 @@ namespace VRChatHeartRateMonitor
         private void DeviceManager_DeviceConnecting()
         {
             SafeInvoke(() => {
+                tabs.SelectedTab = tabMain;
+                tabs.Enabled = false;
                 buttonExecute.Text = "CONNECTING...";
                 buttonExecute.Enabled = false;
                 comboBoxDevices.Enabled = false;
@@ -303,6 +305,7 @@ namespace VRChatHeartRateMonitor
         private void DeviceManager_DeviceConnected(ulong bluetoothDeviceAddress)
         {
             SafeInvoke(() => {
+                tabs.Enabled = true;
                 buttonExecute.Text = "DISCONNECT";
                 buttonExecute.Enabled = true;
                 _heartbeatEffectTimer.Start();
@@ -318,6 +321,8 @@ namespace VRChatHeartRateMonitor
         private void DeviceManager_DeviceDisconnecting()
         {
             SafeInvoke(() => {
+                tabs.SelectedTab = tabMain;
+                tabs.Enabled = false;
                 buttonExecute.Text = "DISCONNECTING...";
                 buttonExecute.Enabled = false;
             });
@@ -326,6 +331,7 @@ namespace VRChatHeartRateMonitor
         private void DeviceManager_DeviceDisconnected()
         {
             SafeInvoke(() => {
+                tabs.Enabled = true;
                 buttonExecute.Text = "CONNECT";
                 buttonExecute.Enabled = true;
                 _heartbeatEffectTimer.Stop();
@@ -443,6 +449,11 @@ namespace VRChatHeartRateMonitor
 
             try
             {
+                SafeInvoke(() => {
+                    tabs.SelectedTab = tabMain;
+                    tabs.Enabled = false;
+                });
+
                 for (int i = 3; i > 0; i--)
                 {
                     SafeInvoke(() => buttonExecute.Text = ("AUTO-CONNECT IN " + i + "S..."));
