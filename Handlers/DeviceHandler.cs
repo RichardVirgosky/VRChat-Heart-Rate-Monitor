@@ -298,13 +298,14 @@ namespace VRChatHeartRateMonitor
                     _batteryLevelCharacteristic?.Service?.Dispose();
                     _batteryLevelCharacteristic = null;
                 }
+
+                _heartRate = 0;
+                HeartRateUpdated?.Invoke(_heartRate);
+                await Task.Delay(500);
             }
 
             _device?.Dispose();
             _device = null;
-
-            _heartRate = 0;
-            HeartRateUpdated?.Invoke(_heartRate);
 
             DeviceDisconnected?.Invoke();
         }
