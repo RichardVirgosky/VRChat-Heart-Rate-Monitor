@@ -349,7 +349,13 @@ namespace VRChatHeartRateMonitor
         private void DeviceManager_DeviceError(string message)
         {
             SafeInvoke(() => {
-                message += "\n\nPlease try reconnecting. If the issue persists, follow these simple troubleshooting steps:\n\n1. Restart the app.\n2. Toggle Bluetooth off, wait 10 seconds, then turn it back on.\n3. Restart your heart rate monitor.\n\nNote: Even if you resolve the issue, please report it on our Discord server to help us improve the app.";
+                message += "\n\nPlease try reconnecting. If the issue persists, follow these simple troubleshooting steps:\n\n";
+                message += "1. Restart the app.\n";
+                message += "2. Make sure your HR monitor isn't already connected to different device for example your phone etc.\n";
+                message += "3. Toggle Bluetooth off, wait 10 seconds, then turn it back on.\n";
+                message += "4. Restart your heart rate monitor.\n\n";
+                message += "Note: Even if you resolve the issue, please report it on our Discord server to help us improve the app.";
+
                 HeartRateMonitor.ErrorMessageBox(message);
             });
         }
