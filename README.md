@@ -3,11 +3,11 @@
 <div align="center">
   <img width="35%" src="https://raw.githubusercontent.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/main/Resources/logo.png" alt="VRChat Heart Rate Monitor Logo"/> 
   <p>💬 <b>Join Our Discord:</b> <a href="https://virgosky.com/dc">Discord Invite Link</a></p>  
-  <a href="https://www.youtube.com/watch?v=zY7n2854BY8"><img src="https://img.youtube.com/vi/zY7n2854BY8/0.jpg" alt="YouTube Video Preview"/></a>  
-</div
+  <a href="https://www.youtube.com/watch?v=zY7n2854BY8"><img src="https://img.youtube.com/vi/zY7n2854BY8/mqdefault.jpg" alt="YouTube Video Preview"/></a>  
+</div>
 
 ## 🚀 About the Project
-VRChat Heart Rate Monitor is a simple app that connects to **any native Bluetooth HR monitor** and integrates your heart rate data into **VRChat, Discord, and other apps.**  
+VRChat Heart Rate Monitor is a simple app that connects to **any native Bluetooth HR monitor** and integrates your heart rate data into **VRChat, Discord, and other apps.**
 
 ## ✨ Features
 ✅ **VRChat Integration** – Send HR data via **VRChat OSC** to **Chatbox** or/and **Avatrar Parameters** to display it in game.  
