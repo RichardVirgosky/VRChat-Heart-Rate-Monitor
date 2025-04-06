@@ -166,102 +166,110 @@ namespace VRChatHeartRateMonitor
         {
             DeviceConnecting?.Invoke();
 
-            _device = await BluetoothLEDevice.FromBluetoothAddressAsync(bluetoothDeviceAddress);
-            _errorMessage = null;
-
-            _heartRate = 0;
-            _batteryLevel = 0;
-
             try
             {
-                if (_device == null)
+                // Attempt to connect to the device without pairing
+                _device = await BluetoothLEDevice.FromBluetoothAddressAsync(bluetoothDeviceAddress);
+
+                if (_device != null)
+                {
+                    // Proceed with GATT services and characteristics discovery
+                    await DiscoverGattServices();
+                    return;
+                }
+                else
                 {
                     _errorMessage = "Bluetooth device error - Couldn't connect to the device!";
                 }
-                else if (!_device.DeviceInformation.Pairing.IsPaired)
+            }
+            catch (Exception ex)
+            {
+                if (ex.HResult == 0x80070002)
                 {
-                    if (_device.DeviceInformation.Pairing.CanPair)
-                    {
-                        DeviceInformationCustomPairing customDeviceParing = _device.DeviceInformation.Pairing.Custom;
-                        customDeviceParing.PairingRequested += (sender, args) => args.Accept();
-
-                        DevicePairingResult pairingResult = await customDeviceParing.PairAsync(DevicePairingKinds.ConfirmOnly);
-
-                        if (pairingResult.Status == DevicePairingResultStatus.Paired || pairingResult.Status == DevicePairingResultStatus.AlreadyPaired)
-                        {
-                            _device.Dispose();
-
-                            await Task.Delay(15000);
-
-                            SubscribeToDevice(bluetoothDeviceAddress);
-                            return;
-                        }
-                        else
-                        {
-                            _errorMessage = "Bluetooth device error while paring with the device!";
-                        }
-                    }
-                    else
-                    {
-                        _errorMessage = "Bluetooth device error - Can't pair with the device!";
-                    }
+                    _errorMessage = "System cannot find the file specified (0x80070002).";
                 }
                 else
                 {
-                    _heartRateCharacteristic = GetHeartRateCharacteristic();
+                    _errorMessage = $"Direct connection attempt failed: {ex.Message}";
+                }
+                DeviceError?.Invoke(_errorMessage);
+            }
 
-                    if (_heartRateCharacteristic != null)
+            if (_errorMessage != null)
+            {
+                DeviceError?.Invoke(_errorMessage);
+                UnsubscribeFromDevice();
+            }
+        }
+        private async Task DiscoverGattServices()
+        {
+            try
+            {
+                var services = await _device.GetGattServicesAsync();
+
+                if (services.Status == GattCommunicationStatus.Success)
+                {
+                    foreach (var service in services.Services)
                     {
-                        if (await SubscibeToHeartRateCharacteristicNotifications())
+                        if (service.Uuid == _heartRateServiceUuid)
                         {
-                            HeartRateUpdated?.Invoke(0);
+                            var characteristics = await service.GetCharacteristicsAsync();
 
-                            _device.ConnectionStatusChanged += Device_ConnectionStatusChanged;
-                            _heartRateCharacteristic.ValueChanged += HeartRateCharacteristic_ValueChanged;
-
-                            _batteryLevelCharacteristic = GetBatteryLevelCharacteristic();
-
-                            if (_batteryLevelCharacteristic != null && await SubscibeToBatteryLevelCharacteristicNotifications())
+                            if (characteristics.Status == GattCommunicationStatus.Success)
                             {
-                                BatteryLevelUpdated?.Invoke(0);
-
-                                _batteryLevelCharacteristic.ValueChanged += BatteryLevelCharacteristic_ValueChanged;
-
-                                var firstBatteryLevelValue = await _batteryLevelCharacteristic.ReadValueAsync();
-
-                                if (firstBatteryLevelValue.Status == GattCommunicationStatus.Success)
+                                foreach (var characteristic in characteristics.Characteristics)
                                 {
-                                    SetBatteryLevel(firstBatteryLevelValue.Value.ToArray());
+                                    if (characteristic.Uuid == _heartRateCharacteristicUuid)
+                                    {
+                                        _heartRateCharacteristic = characteristic;
+
+                                        if (await SubscibeToHeartRateCharacteristicNotifications())
+                                        {
+                                            HeartRateUpdated?.Invoke(0);
+
+                                            _device.ConnectionStatusChanged += Device_ConnectionStatusChanged;
+                                            _heartRateCharacteristic.ValueChanged += HeartRateCharacteristic_ValueChanged;
+
+                                            // Discover battery level characteristic if required
+                                            _batteryLevelCharacteristic = GetBatteryLevelCharacteristic();
+
+                                            if (_batteryLevelCharacteristic != null && await SubscibeToBatteryLevelCharacteristicNotifications())
+                                            {
+                                                BatteryLevelUpdated?.Invoke(0);
+
+                                                _batteryLevelCharacteristic.ValueChanged += BatteryLevelCharacteristic_ValueChanged;
+
+                                                var firstBatteryLevelValue = await _batteryLevelCharacteristic.ReadValueAsync();
+
+                                                if (firstBatteryLevelValue.Status == GattCommunicationStatus.Success)
+                                                {
+                                                    SetBatteryLevel(firstBatteryLevelValue.Value.ToArray());
+                                                }
+                                            }
+
+                                            DeviceConnected?.Invoke(_device.BluetoothAddress);
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            _errorMessage = "Couldn't subscribe to the heart rate characteristic notifications!";
+                                        }
+                                    }
                                 }
                             }
+                        }
+                    }
 
-                            DeviceConnected?.Invoke(_device.BluetoothAddress);
-                        }
-                        else if (++attempt <= 3)
-                        {
-                            await Task.Delay(1000 * attempt);
-                            SubscribeToDevice(bluetoothDeviceAddress, attempt);
-                        }
-                        else
-                        {
-                            _errorMessage = "Bluetooth device error - Couldn't subscribe to the characteristic notifications!";
-                        }
-                    }
-                    else
-                    {
-                        _errorMessage = "Bluetooth device error - Couldn't find the heart rate characteristic!";
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                if (++attempt <= 3)
-                {
-                    await Task.Delay(1000 * attempt);
-                    SubscribeToDevice(bluetoothDeviceAddress, attempt);
+                    _errorMessage = "Couldn't find the heart rate characteristic!";
                 }
                 else
-                    _errorMessage = "Bluetooth device error - Unexpected failure!";
+                {
+                    _errorMessage = "Failed to get GATT services!";
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = $"Error in DiscoverGattServices: {ex.Message}";
             }
 
             if (_errorMessage != null)
