@@ -54,7 +54,7 @@ namespace VRChatHeartRateMonitor
                         SuccessMessageBox(
                             "Application updated successfully!\n\n" +
                             "Here's what's new:\n" +
-                            "• Improved device connectivity handlin\n" +
+                            "• Improved device connectivity handling\n" +
                             "• Fully customizable template-based chat template\n" +
                             "• Average Heart Rate available in Chatbox, Discord and Web Server\n" +
                             "• Added setup instructions for using Web Server with OBS and similar tools.\n\n" +
