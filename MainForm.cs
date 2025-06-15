@@ -373,6 +373,7 @@ namespace VRChatHeartRateMonitor
         {
             SafeInvoke(() => {
                 SetIcons(heartRate);
+                _heartbeatEffectTimer.Interval = (heartRate <= 80 ? 400 : heartRate <= 130 ? 300 : 150);
             });
         }
 
