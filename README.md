@@ -15,6 +15,7 @@ VRChat Heart Rate Monitor is a simple app that connects to **any native Bluetoot
 ✅ **Discord Rich Presence** – Show your live heart rate in Discord activity.  
 
 ✅ **Other Apps/Local Web Server Support** – Share your heart rate data via local web server to integrate with other apps (e.g. **OBS**).  
+🔗 [OBS Instructions Here](https://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md) 
 
 ## 📌 Compatibility
 💡 **Recommended Devices:** The best choice are **Dedicated heart rate trackers** (often inexpensive), as they are specifically designed for real-time heart rate monitoring and often support standard Bluetooth connection.  

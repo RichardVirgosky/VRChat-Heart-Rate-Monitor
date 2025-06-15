@@ -43,7 +43,7 @@ namespace VRChatHeartRateMonitor
 
         private bool _useWebServer = false;
         private ushort _webServerPort = 6969;
-        private string _webServerHtml = "HR: {HR}";
+        private string _webServerHtml = "HR: {HR}\r\nInstruction:\r\nhttps://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md";
 
         private bool _useDiscord = true;
         private string _discordActiveText = "AVG: {AVG} BPM";
@@ -598,22 +598,63 @@ namespace VRChatHeartRateMonitor
 
         private void buttonBoxChatboxTextInfo_Click(object sender, EventArgs e)
         {
-            
+            HeartRateMonitor.InfoMessageBox(
+                "You can customize the chatbox message template with any text and UTF-8 emojis.\n\n" +
+                "To add emojis, search for something like \"UTF-8 heart emoji\" on Google (e.g., ❤️, 💓, 🫀) and paste them into the message field.\n\n" +
+                "Note: Emojis may appear differently in VRChat depending on the platform.\n\n" +
+                "SUPPORTED VARIABLES:\n" +
+                "  {HR} = Current heart rate (BPM)\n" +
+                "  {I} = Heart rate trend indicator icon\n" +
+                "  {AVG} = Average heart rate\n\n" +
+                "EXAMPLE TEMPLATE:\n" +
+                "  ♥ Heart Rate: {HR} BPM {I} (AVG: {AVG})\n\n" +
+                "Might display:\n" +
+                "  ♥ Heart Rate: 69 BPM ▲ (AVG: 90)"
+            );
         }
 
         private void buttonAvatarParameterInfo_Click(object sender, EventArgs e)
         {
-            HeartRateMonitor.InfoMessageBox($"To use this option you need to edit your VRChat avatar in Unity. New float paramater /avatar/parameters/{_avatarParameter} (from -1.0 to 1.0 - precision of 1/127) will be send through VRChat OSC. You need to add it to parameters, make sure that it's syncedm but not saved, and create animation which displays the heart rate. For more details about avatar configuration check Richard's video ;)");
+            HeartRateMonitor.InfoMessageBox(
+                "To use this feature, you need to edit your VRChat avatar in Unity.\n\n" +
+                $"A new parameter named \"/avatar/parameters/{_avatarParameter}\" will be sent via OSC in two formats:\n" +
+                "  - FLOAT: Range -1.0 to 1.0 (with ~1/127 precision)\n" +
+                "  - INT: Range 0 to 255\n\n" +
+                "Both are sent using the same parameter name. VRChat will use whichever type your avatar is set up to receive or even both, depending on your setup.\n\n" +
+                "To set it up correctly:\n" +
+                "  - Add the parameter to your avatar's Parameters list.\n" +
+                "  - Make sure it's SYNCED, but NOT SAVED.\n" +
+                "  - Create animations or logic that use the heart rate value.\n\n" +
+                "For more help on avatar setup, check out Richard's video! 😉"
+            );
         }
 
         private void buttonOscAddressInfo_Click(object sender, EventArgs e)
         {
-            HeartRateMonitor.InfoMessageBox($"According to documentation, VRChat receives data via OSC on port 9000.\n\nIn most cases, you should keep the default address 127.0.0.1:9000 unless you have a specific reason to change it.\n\nMore info: https://docs.vrchat.com/docs/osc-overview");
+            HeartRateMonitor.InfoMessageBox(
+                "According to the official documentation, VRChat receives OSC data on port 9000.\n\n" +
+                "In most cases, you should leave the address as the default: 127.0.0.1:9000\n\n" +
+                "Only change this if you are using a different network setup or VRChat instance.\n\n" +
+                "More info:\n" +
+                "https://docs.vrchat.com/docs/osc-overview"
+            );
         }
 
         private void buttonWebServerPortInfo_Click(object sender, EventArgs e)
         {
-            HeartRateMonitor.InfoMessageBox($"This option is useful for streamers or more advanced users who wants to do something more with capetured heart rate data, it'll be availabe at http://localohst:{_webServerPort} (make sure to configure port that isn't already taken) so you can display it in OBS or do whatever you want with it.");
+            HeartRateMonitor.InfoMessageBox(
+                "This option is intended for streamers or advanced users who want to use the captured heart rate data elsewhere.\n\n" +
+                "A local web server will be started at:\n" +
+                $"  http://localhost:{_webServerPort}\n\n" +
+                "You can use this in OBS (e.g., via browser source) or any custom integration.\n" +
+                "Make sure the selected port isn't already in use.\n\n" +
+                "The displayed template can be any HTML/CSS/JS combination you want. Just remember to include the variables:\n" +
+                "  {HR} - current heart rate\n" +
+                "  {AVG} - average heart rate\n\n" +
+                "Streamer setup guides and examples are available on our Discord and GitHub. It only takes a few simple steps and is fully customizable!\n\n" +
+                "More info:\n" +
+                "https://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md"
+            );
         }
 
         private void buttonSaveSettings_Click(object sender, EventArgs e)
@@ -747,7 +788,7 @@ namespace VRChatHeartRateMonitor
 
         private void linkLabelWebServerTemplateInstruction_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-
+            Process.Start(new ProcessStartInfo("https://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md") { UseShellExecute = true });
         }
     }
 }
