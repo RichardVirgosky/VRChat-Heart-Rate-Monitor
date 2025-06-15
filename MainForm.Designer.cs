@@ -50,8 +50,9 @@ namespace VRChatHeartRateMonitor
             this.labelAvatarParameter = new System.Windows.Forms.Label();
             this.checkBoxUseAvatar = new System.Windows.Forms.CheckBox();
             this.panelChatbox = new System.Windows.Forms.Panel();
-            this.comboBoxChatboxAppearance = new System.Windows.Forms.ComboBox();
-            this.labelChatboxAppearance = new System.Windows.Forms.Label();
+            this.buttonBoxChatboxTextInfo = new System.Windows.Forms.Button();
+            this.textBoxChatboxText = new System.Windows.Forms.TextBox();
+            this.labelChatboxText = new System.Windows.Forms.Label();
             this.buttonSaveVRChatSettings = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.checkBoxUseChatbox = new System.Windows.Forms.CheckBox();
@@ -61,6 +62,10 @@ namespace VRChatHeartRateMonitor
             this.labelOscInfo = new System.Windows.Forms.Label();
             this.labelOsc = new System.Windows.Forms.Label();
             this.tabWebServerSettings = new System.Windows.Forms.TabPage();
+            this.textBoxWebServerHtml = new System.Windows.Forms.TextBox();
+            this.panelWebServerHtml = new System.Windows.Forms.Panel();
+            this.labelWebServerHtml = new System.Windows.Forms.Label();
+            this.linkLabelWebServerTemplateInstruction = new System.Windows.Forms.LinkLabel();
             this.buttonSaveWebServerSettings = new System.Windows.Forms.Button();
             this.panelWebServer = new System.Windows.Forms.Panel();
             this.buttonWebServerPortInfo = new System.Windows.Forms.Button();
@@ -91,9 +96,6 @@ namespace VRChatHeartRateMonitor
             this.panelFooter = new System.Windows.Forms.Panel();
             this.pictureBoxFooterDiscord = new System.Windows.Forms.PictureBox();
             this.linkLabelFooterWebsite = new System.Windows.Forms.LinkLabel();
-            this.labelWebServerHtml = new System.Windows.Forms.Label();
-            this.panelWebServerHtml = new System.Windows.Forms.Panel();
-            this.textBoxWebServerHtml = new System.Windows.Forms.TextBox();
             this.tabs.SuspendLayout();
             this.tabMain.SuspendLayout();
             this.panelHeartRateDisplay.SuspendLayout();
@@ -104,6 +106,7 @@ namespace VRChatHeartRateMonitor
             this.panel1.SuspendLayout();
             this.panelOsc.SuspendLayout();
             this.tabWebServerSettings.SuspendLayout();
+            this.panelWebServerHtml.SuspendLayout();
             this.panelWebServer.SuspendLayout();
             this.tabDiscordSettings.SuspendLayout();
             this.panelDiscordStateText.SuspendLayout();
@@ -115,7 +118,6 @@ namespace VRChatHeartRateMonitor
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxInfoAuthor)).BeginInit();
             this.panelFooter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxFooterDiscord)).BeginInit();
-            this.panelWebServerHtml.SuspendLayout();
             this.SuspendLayout();
             // 
             // notifyIcon
@@ -184,13 +186,13 @@ namespace VRChatHeartRateMonitor
             this.buttonExecute.AutoSize = true;
             this.buttonExecute.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.buttonExecute.Enabled = false;
-            this.buttonExecute.Font = new System.Drawing.Font("Cascadia Mono", 20F);
+            this.buttonExecute.Font = new System.Drawing.Font("Cascadia Mono", 14F);
             this.buttonExecute.Location = new System.Drawing.Point(1, 203);
             this.buttonExecute.Margin = new System.Windows.Forms.Padding(1);
             this.buttonExecute.Name = "buttonExecute";
             this.buttonExecute.Size = new System.Drawing.Size(521, 45);
             this.buttonExecute.TabIndex = 5;
-            this.buttonExecute.Text = "START";
+            this.buttonExecute.Text = "Scanning for Bluetooth Devices...";
             this.buttonExecute.UseVisualStyleBackColor = true;
             this.buttonExecute.Click += new System.EventHandler(this.buttonExecute_Click);
             // 
@@ -338,41 +340,49 @@ namespace VRChatHeartRateMonitor
             // 
             // panelChatbox
             // 
-            this.panelChatbox.Controls.Add(this.comboBoxChatboxAppearance);
-            this.panelChatbox.Controls.Add(this.labelChatboxAppearance);
+            this.panelChatbox.Controls.Add(this.buttonBoxChatboxTextInfo);
+            this.panelChatbox.Controls.Add(this.textBoxChatboxText);
+            this.panelChatbox.Controls.Add(this.labelChatboxText);
             this.panelChatbox.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelChatbox.Location = new System.Drawing.Point(1, 87);
             this.panelChatbox.Name = "panelChatbox";
             this.panelChatbox.Size = new System.Drawing.Size(522, 33);
             this.panelChatbox.TabIndex = 12;
             // 
-            // comboBoxChatboxAppearance
+            // buttonBoxChatboxTextInfo
             // 
-            this.comboBoxChatboxAppearance.Dock = System.Windows.Forms.DockStyle.Left;
-            this.comboBoxChatboxAppearance.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxChatboxAppearance.Font = new System.Drawing.Font("Cascadia Mono", 10F);
-            this.comboBoxChatboxAppearance.FormattingEnabled = true;
-            this.comboBoxChatboxAppearance.Items.AddRange(new object[] {
-            "Type 1",
-            "Type 2",
-            "Type 3",
-            "Type 4",
-            "Type 5"});
-            this.comboBoxChatboxAppearance.Location = new System.Drawing.Point(348, 0);
-            this.comboBoxChatboxAppearance.Name = "comboBoxChatboxAppearance";
-            this.comboBoxChatboxAppearance.Size = new System.Drawing.Size(173, 25);
-            this.comboBoxChatboxAppearance.TabIndex = 6;
+            this.buttonBoxChatboxTextInfo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonBoxChatboxTextInfo.Font = new System.Drawing.Font("Cascadia Mono", 11F);
+            this.buttonBoxChatboxTextInfo.Location = new System.Drawing.Point(497, 0);
+            this.buttonBoxChatboxTextInfo.Name = "buttonBoxChatboxTextInfo";
+            this.buttonBoxChatboxTextInfo.Size = new System.Drawing.Size(23, 23);
+            this.buttonBoxChatboxTextInfo.TabIndex = 7;
+            this.buttonBoxChatboxTextInfo.Text = "?";
+            this.buttonBoxChatboxTextInfo.UseVisualStyleBackColor = true;
+            this.buttonBoxChatboxTextInfo.Click += new System.EventHandler(this.buttonBoxChatboxTextInfo_Click);
             // 
-            // labelChatboxAppearance
+            // textBoxChatboxText
             // 
-            this.labelChatboxAppearance.Dock = System.Windows.Forms.DockStyle.Left;
-            this.labelChatboxAppearance.Font = new System.Drawing.Font("Cascadia Mono", 9F);
-            this.labelChatboxAppearance.Location = new System.Drawing.Point(0, 0);
-            this.labelChatboxAppearance.Name = "labelChatboxAppearance";
-            this.labelChatboxAppearance.Padding = new System.Windows.Forms.Padding(8, 3, 0, 0);
-            this.labelChatboxAppearance.Size = new System.Drawing.Size(348, 33);
-            this.labelChatboxAppearance.TabIndex = 5;
-            this.labelChatboxAppearance.Text = "Select the type of message appearance:";
+            this.textBoxChatboxText.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxChatboxText.Dock = System.Windows.Forms.DockStyle.Left;
+            this.textBoxChatboxText.Font = new System.Drawing.Font("Cascadia Mono", 10F);
+            this.textBoxChatboxText.Location = new System.Drawing.Point(288, 0);
+            this.textBoxChatboxText.MaxLength = 128;
+            this.textBoxChatboxText.Name = "textBoxChatboxText";
+            this.textBoxChatboxText.ReadOnly = true;
+            this.textBoxChatboxText.Size = new System.Drawing.Size(210, 23);
+            this.textBoxChatboxText.TabIndex = 6;
+            // 
+            // labelChatboxText
+            // 
+            this.labelChatboxText.Dock = System.Windows.Forms.DockStyle.Left;
+            this.labelChatboxText.Font = new System.Drawing.Font("Cascadia Mono", 9F);
+            this.labelChatboxText.Location = new System.Drawing.Point(0, 0);
+            this.labelChatboxText.Name = "labelChatboxText";
+            this.labelChatboxText.Padding = new System.Windows.Forms.Padding(8, 3, 0, 0);
+            this.labelChatboxText.Size = new System.Drawing.Size(288, 33);
+            this.labelChatboxText.TabIndex = 5;
+            this.labelChatboxText.Text = "Set chatbox message template text:";
             // 
             // buttonSaveVRChatSettings
             // 
@@ -471,8 +481,8 @@ namespace VRChatHeartRateMonitor
             // tabWebServerSettings
             // 
             this.tabWebServerSettings.BackColor = System.Drawing.Color.White;
+            this.tabWebServerSettings.Controls.Add(this.textBoxWebServerHtml);
             this.tabWebServerSettings.Controls.Add(this.panelWebServerHtml);
-            this.tabWebServerSettings.Controls.Add(this.labelWebServerHtml);
             this.tabWebServerSettings.Controls.Add(this.buttonSaveWebServerSettings);
             this.tabWebServerSettings.Controls.Add(this.panelWebServer);
             this.tabWebServerSettings.Controls.Add(this.checkBoxUseWebServer);
@@ -483,6 +493,65 @@ namespace VRChatHeartRateMonitor
             this.tabWebServerSettings.Size = new System.Drawing.Size(524, 278);
             this.tabWebServerSettings.TabIndex = 3;
             this.tabWebServerSettings.Text = "Web Server";
+            // 
+            // textBoxWebServerHtml
+            // 
+            this.textBoxWebServerHtml.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxWebServerHtml.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBoxWebServerHtml.Font = new System.Drawing.Font("Cascadia Mono", 10F);
+            this.textBoxWebServerHtml.Location = new System.Drawing.Point(1, 74);
+            this.textBoxWebServerHtml.MaxLength = 16383;
+            this.textBoxWebServerHtml.Multiline = true;
+            this.textBoxWebServerHtml.Name = "textBoxWebServerHtml";
+            this.textBoxWebServerHtml.ReadOnly = true;
+            this.textBoxWebServerHtml.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBoxWebServerHtml.Size = new System.Drawing.Size(522, 129);
+            this.textBoxWebServerHtml.TabIndex = 8;
+            this.textBoxWebServerHtml.WordWrap = false;
+            // 
+            // panelWebServerHtml
+            // 
+            this.panelWebServerHtml.BackColor = System.Drawing.Color.Transparent;
+            this.panelWebServerHtml.Controls.Add(this.labelWebServerHtml);
+            this.panelWebServerHtml.Controls.Add(this.linkLabelWebServerTemplateInstruction);
+            this.panelWebServerHtml.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelWebServerHtml.Location = new System.Drawing.Point(1, 52);
+            this.panelWebServerHtml.Name = "panelWebServerHtml";
+            this.panelWebServerHtml.Padding = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.panelWebServerHtml.Size = new System.Drawing.Size(522, 22);
+            this.panelWebServerHtml.TabIndex = 13;
+            // 
+            // labelWebServerHtml
+            // 
+            this.labelWebServerHtml.AutoSize = true;
+            this.labelWebServerHtml.Dock = System.Windows.Forms.DockStyle.Left;
+            this.labelWebServerHtml.Font = new System.Drawing.Font("Cascadia Mono", 10F);
+            this.labelWebServerHtml.Location = new System.Drawing.Point(8, 0);
+            this.labelWebServerHtml.Margin = new System.Windows.Forms.Padding(0, 0, 3, 0);
+            this.labelWebServerHtml.Name = "labelWebServerHtml";
+            this.labelWebServerHtml.Padding = new System.Windows.Forms.Padding(0, 3, 0, 0);
+            this.labelWebServerHtml.Size = new System.Drawing.Size(120, 21);
+            this.labelWebServerHtml.TabIndex = 12;
+            this.labelWebServerHtml.Text = "HTML template:";
+            // 
+            // linkLabelWebServerTemplateInstruction
+            // 
+            this.linkLabelWebServerTemplateInstruction.ActiveLinkColor = System.Drawing.Color.LightGray;
+            this.linkLabelWebServerTemplateInstruction.AutoSize = true;
+            this.linkLabelWebServerTemplateInstruction.Dock = System.Windows.Forms.DockStyle.Right;
+            this.linkLabelWebServerTemplateInstruction.Font = new System.Drawing.Font("Cascadia Mono", 8F);
+            this.linkLabelWebServerTemplateInstruction.LinkColor = System.Drawing.Color.Gray;
+            this.linkLabelWebServerTemplateInstruction.Location = new System.Drawing.Point(269, 0);
+            this.linkLabelWebServerTemplateInstruction.Margin = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.linkLabelWebServerTemplateInstruction.Name = "linkLabelWebServerTemplateInstruction";
+            this.linkLabelWebServerTemplateInstruction.Padding = new System.Windows.Forms.Padding(0, 8, 0, 0);
+            this.linkLabelWebServerTemplateInstruction.Size = new System.Drawing.Size(253, 23);
+            this.linkLabelWebServerTemplateInstruction.TabIndex = 14;
+            this.linkLabelWebServerTemplateInstruction.TabStop = true;
+            this.linkLabelWebServerTemplateInstruction.Text = "Click here for templates and instructions";
+            this.linkLabelWebServerTemplateInstruction.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.linkLabelWebServerTemplateInstruction.VisitedLinkColor = System.Drawing.Color.DimGray;
+            this.linkLabelWebServerTemplateInstruction.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelWebServerTemplateInstruction_LinkClicked);
             // 
             // buttonSaveWebServerSettings
             // 
@@ -866,43 +935,6 @@ namespace VRChatHeartRateMonitor
             this.linkLabelFooterWebsite.VisitedLinkColor = System.Drawing.Color.DimGray;
             this.linkLabelFooterWebsite.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelFooterWebsite_LinkClicked);
             // 
-            // labelWebServerHtml
-            // 
-            this.labelWebServerHtml.Dock = System.Windows.Forms.DockStyle.Top;
-            this.labelWebServerHtml.Font = new System.Drawing.Font("Cascadia Mono", 10F);
-            this.labelWebServerHtml.Location = new System.Drawing.Point(1, 52);
-            this.labelWebServerHtml.Name = "labelWebServerHtml";
-            this.labelWebServerHtml.Padding = new System.Windows.Forms.Padding(8, 3, 0, 0);
-            this.labelWebServerHtml.Size = new System.Drawing.Size(522, 25);
-            this.labelWebServerHtml.TabIndex = 12;
-            this.labelWebServerHtml.Text = "HTML/JS template:";
-            // 
-            // panelWebServerHtml
-            // 
-            this.panelWebServerHtml.BackColor = System.Drawing.Color.Transparent;
-            this.panelWebServerHtml.Controls.Add(this.textBoxWebServerHtml);
-            this.panelWebServerHtml.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelWebServerHtml.Location = new System.Drawing.Point(1, 77);
-            this.panelWebServerHtml.Name = "panelWebServerHtml";
-            this.panelWebServerHtml.Padding = new System.Windows.Forms.Padding(11, 0, 11, 0);
-            this.panelWebServerHtml.Size = new System.Drawing.Size(522, 120);
-            this.panelWebServerHtml.TabIndex = 13;
-            // 
-            // textBoxWebServerHtml
-            // 
-            this.textBoxWebServerHtml.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxWebServerHtml.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBoxWebServerHtml.Font = new System.Drawing.Font("Cascadia Mono", 10F);
-            this.textBoxWebServerHtml.Location = new System.Drawing.Point(11, 0);
-            this.textBoxWebServerHtml.MaxLength = 16383;
-            this.textBoxWebServerHtml.Multiline = true;
-            this.textBoxWebServerHtml.Name = "textBoxWebServerHtml";
-            this.textBoxWebServerHtml.ReadOnly = true;
-            this.textBoxWebServerHtml.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxWebServerHtml.Size = new System.Drawing.Size(500, 120);
-            this.textBoxWebServerHtml.TabIndex = 8;
-            this.textBoxWebServerHtml.WordWrap = false;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -928,12 +960,15 @@ namespace VRChatHeartRateMonitor
             this.panelAvatar.ResumeLayout(false);
             this.panelAvatar.PerformLayout();
             this.panelChatbox.ResumeLayout(false);
+            this.panelChatbox.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panelOsc.ResumeLayout(false);
             this.panelOsc.PerformLayout();
             this.tabWebServerSettings.ResumeLayout(false);
             this.tabWebServerSettings.PerformLayout();
+            this.panelWebServerHtml.ResumeLayout(false);
+            this.panelWebServerHtml.PerformLayout();
             this.panelWebServer.ResumeLayout(false);
             this.panelWebServer.PerformLayout();
             this.tabDiscordSettings.ResumeLayout(false);
@@ -951,8 +986,6 @@ namespace VRChatHeartRateMonitor
             this.panelFooter.ResumeLayout(false);
             this.panelFooter.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxFooterDiscord)).EndInit();
-            this.panelWebServerHtml.ResumeLayout(false);
-            this.panelWebServerHtml.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -984,10 +1017,11 @@ namespace VRChatHeartRateMonitor
         private System.Windows.Forms.ComboBox comboBoxDevices;
         private System.Windows.Forms.Panel panelChatbox;
         private System.Windows.Forms.Panel panelOsc;
-        private System.Windows.Forms.Label labelChatboxAppearance;
+        private System.Windows.Forms.Label labelChatboxText;
         private System.Windows.Forms.Label labelOsc;
         private System.Windows.Forms.Label labelOscInfo;
-        private System.Windows.Forms.ComboBox comboBoxChatboxAppearance;
+        private System.Windows.Forms.Button buttonBoxChatboxTextInfo;
+        private System.Windows.Forms.TextBox textBoxChatboxText;
         private System.Windows.Forms.Label labelBatteryLevel;
         private System.Windows.Forms.PictureBox pictureBoxFooterDiscord;
         private System.Windows.Forms.Panel panelInfoBottom;
@@ -1019,8 +1053,9 @@ namespace VRChatHeartRateMonitor
         private System.Windows.Forms.Button buttonSaveWebServerSettings;
         private System.Windows.Forms.Button buttonSaveDiscordSettings;
         private System.Windows.Forms.Panel panelWebServerHtml;
-        private System.Windows.Forms.TextBox textBoxWebServerHtml;
         private System.Windows.Forms.Label labelWebServerHtml;
+        private System.Windows.Forms.LinkLabel linkLabelWebServerTemplateInstruction;
+        private System.Windows.Forms.TextBox textBoxWebServerHtml;
     }
 }
 

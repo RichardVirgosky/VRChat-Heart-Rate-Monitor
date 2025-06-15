@@ -7,12 +7,13 @@ using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
 using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Collections.Generic;
 
 namespace VRChatHeartRateMonitor
 {
     internal class DeviceHandler
     {
-        private ushort _heartRate = 0;
+        private LinkedList<(DateTime timestamp, ushort heartRate)> _heartRateList = new LinkedList<(DateTime timestamp, ushort heartRate)>();
         private ushort _batteryLevel = 0;
         private BluetoothLEAdvertisementWatcher _bluetoothLEAdvertisementWatcher;
         private BluetoothLEDevice _device;
@@ -169,7 +170,7 @@ namespace VRChatHeartRateMonitor
             _device = await BluetoothLEDevice.FromBluetoothAddressAsync(bluetoothDeviceAddress);
             _errorMessage = null;
 
-            _heartRate = 0;
+            _heartRateList.Clear();
             _batteryLevel = 0;
 
             try
@@ -214,7 +215,6 @@ namespace VRChatHeartRateMonitor
                     {
                         if (await SubscibeToHeartRateCharacteristicNotifications())
                         {
-                            HeartRateUpdated?.Invoke(0);
 
                             _device.ConnectionStatusChanged += Device_ConnectionStatusChanged;
                             _heartRateCharacteristic.ValueChanged += HeartRateCharacteristic_ValueChanged;
@@ -285,6 +285,7 @@ namespace VRChatHeartRateMonitor
         public async void UnsubscribeFromDevice(bool callActions = true)
         {
             DeviceDisconnecting?.Invoke();
+            HeartRateUpdated?.Invoke(GetHeartRate());
 
             if (_heartRateCharacteristic != null)
             {
@@ -299,8 +300,6 @@ namespace VRChatHeartRateMonitor
                     _batteryLevelCharacteristic = null;
                 }
 
-                _heartRate = 0;
-                HeartRateUpdated?.Invoke(_heartRate);
                 await Task.Delay(500);
             }
 
@@ -329,10 +328,18 @@ namespace VRChatHeartRateMonitor
 
                 if (newHeartRate > 254) newHeartRate = 254;
 
-                if (newHeartRate != _heartRate)
+                if (newHeartRate != GetHeartRate())
                 {
-                    _heartRate = newHeartRate;
                     HeartRateUpdated?.Invoke(newHeartRate);
+                }
+
+                _heartRateList.AddLast((DateTime.UtcNow, newHeartRate));
+
+                DateTime heartRateListThreshold = (DateTime.UtcNow - TimeSpan.FromMinutes(5));
+
+                while (_heartRateList.Count > 0 && _heartRateList.First.Value.timestamp < heartRateListThreshold)
+                {
+                    _heartRateList.RemoveFirst();
                 }
             }
         }
@@ -365,7 +372,24 @@ namespace VRChatHeartRateMonitor
 
         public ushort GetHeartRate()
         {
-            return _heartRate;
+            if (_heartRateList.Count > 0 && IsListening())
+                return _heartRateList.Last.Value.heartRate;
+            return 0;
+        }
+
+        public ushort GetAverageHeartRate()
+        {
+            if (_heartRateList.Count == 0)
+                return 0;
+
+            try
+            {
+                return (ushort)Math.Round(_heartRateList.Average(s => s.heartRate));
+            }
+            catch (InvalidOperationException)
+            {
+                return GetAverageHeartRate();
+            }
         }
 
         public string BluetoothAddressToString(ulong bluetoothAddress)

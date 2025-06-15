@@ -13,6 +13,7 @@ namespace VRChatHeartRateMonitor
         private Stopwatch _presenceStopwatch = new Stopwatch();
         private DateTime _presenceStartTime = DateTime.UtcNow;
         public Func<ushort> RequestHeartRate { get; set; }
+        public Func<ushort> RequestAverageHeartRate { get; set; }
 
         public async void Start(string activeText, string idleText, string stateText)
         {
@@ -26,13 +27,15 @@ namespace VRChatHeartRateMonitor
                 while (!_client.IsDisposed)
                 {
                     ushort currentHeartRate = RequestHeartRate();
+                    ushort averageHeartRate = RequestAverageHeartRate();
 
                     if (currentHeartRate != lastRenderedHeartRate && (!_presenceStopwatch.IsRunning || _presenceStopwatch.Elapsed.TotalSeconds > 15))
                     {
-                        string state = String.Format(stateText, currentHeartRate);
+                        string state = (currentHeartRate > 0 ? stateText.Replace("{HR}", currentHeartRate.ToString()).Replace("{AVG}", averageHeartRate.ToString()) : "");
+
                         _client?.SetPresence(new RichPresence()
                         {
-                            Details = String.Format((currentHeartRate > 0 ? activeText : idleText), currentHeartRate),
+                            Details = (currentHeartRate > 0 ? activeText.Replace("{HR}", currentHeartRate.ToString()).Replace("{AVG}", averageHeartRate.ToString()) : idleText),
                             State = state,
                             Assets = new Assets()
                             {

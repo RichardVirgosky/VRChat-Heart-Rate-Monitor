@@ -8,6 +8,7 @@ namespace VRChatHeartRateMonitor
     {
         private HttpListener _httpListener;
         public Func<ushort> RequestHeartRate { get; set; }
+        public Func<ushort> RequestAverageHeartRate { get; set; }
 
         public async void Start(ushort httpPort, string html)
         {
@@ -25,7 +26,7 @@ namespace VRChatHeartRateMonitor
                         var context = await _httpListener.GetContextAsync();
                         var response = context.Response;
 
-                        byte[] buffer = Encoding.UTF8.GetBytes(String.Format(html, RequestHeartRate()));
+                        byte[] buffer = Encoding.UTF8.GetBytes(html.Replace("{HR}", RequestHeartRate().ToString()).Replace("{AVG}", RequestAverageHeartRate().ToString()));
                         response.ContentLength64 = buffer.Length;
 
                         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);

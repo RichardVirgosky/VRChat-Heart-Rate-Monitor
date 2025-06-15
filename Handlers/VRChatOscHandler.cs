@@ -13,17 +13,9 @@ namespace VRChatHeartRateMonitor
         private CancellationTokenSource _cancellationTokenSource;
 
         public Func<ushort> RequestHeartRate { get; set; }
+        public Func<ushort> RequestAverageHeartRate { get; set; }
 
-        private static readonly string[] chatboxAppearanceTemplates = {
-            "♥",
-            "💖",
-            "💓",
-            "💔",
-            "💕",
-            "💘"
-        };
-
-        public async void Start(bool useChatbox, ushort chatboxAppearance, bool useAvatar, string avatarParameter, string oscAddress)
+        public async void Start(bool useChatbox, string chatboxText, bool useAvatar, string avatarParameter, string oscAddress)
         {
             _cancellationTokenSource = new CancellationTokenSource();
 
@@ -45,22 +37,24 @@ namespace VRChatHeartRateMonitor
 
             while (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
             {
-                ushort heartRate = RequestHeartRate();
+                ushort currentHeartRate = RequestHeartRate();
+                ushort averageHeartRate = RequestAverageHeartRate();
 
-                if (useChatbox && ((lastChatboxHeartRate != heartRate && chatboxStopwatch?.Elapsed.TotalSeconds >= 2) || chatboxStopwatch?.Elapsed.TotalSeconds >= 5))
+                if (useChatbox && currentHeartRate > 0 && ((lastChatboxHeartRate != currentHeartRate && chatboxStopwatch?.Elapsed.TotalSeconds >= 2) || chatboxStopwatch?.Elapsed.TotalSeconds >= 5))
                 {
-                    OscChatbox.SendMessage($"{chatboxAppearanceTemplates.ElementAt(chatboxAppearance)} {heartRate} {(heartRate < lastChatboxHeartRate ? "▼" : "▲")}", true, false);
+                    OscChatbox.SendMessage(chatboxText.Replace("{HR}", currentHeartRate.ToString()).Replace("{I}", (currentHeartRate < lastChatboxHeartRate ? "▼" : "▲")).Replace("{AVG}", averageHeartRate.ToString()), true, false);
 
                     chatboxStopwatch?.Restart();
 
-                    lastChatboxHeartRate = heartRate;
+                    lastChatboxHeartRate = currentHeartRate;
                 }
 
-                if (useAvatar && lastAvatarHeartRate != heartRate)
+                if (useAvatar && lastAvatarHeartRate != currentHeartRate)
                 {
-                    OscParameter.SendAvatarParameter(avatarParameter, (heartRate - 127f) / 127f);
+                    OscParameter.SendAvatarParameter(avatarParameter, (int)currentHeartRate);
+                    OscParameter.SendAvatarParameter(avatarParameter, (currentHeartRate - 127f) / 127f);
 
-                    lastAvatarHeartRate = heartRate;
+                    lastAvatarHeartRate = currentHeartRate;
                 }
 
                 await Task.Delay(100);

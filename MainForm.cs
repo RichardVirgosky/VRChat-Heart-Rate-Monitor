@@ -36,19 +36,19 @@ namespace VRChatHeartRateMonitor
         private string _oscAddress = "127.0.0.1:9000";
 
         private bool _useChatbox = true;
-        private ushort _chatboxAppearance = 0;
+        private string _chatboxText = "♥ {HR} {I} (AVG {AVG})";
 
         private bool _useAvatar = false;
         private string _avatarParameter = "heartRate";
 
         private bool _useWebServer = false;
         private ushort _webServerPort = 6969;
-        private string _webServerHtml = "<!-- Use own HTML/JS \"{0}\" will be replaced with HR value -->\r\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 24 24\" style=\"position: relative;\">\r\n<path d=\"M12 4.248c-3.148-5.402-12-3.825-12 2.944 0 4.661 5.571 9.427 12 15.808 6.43-6.381 12-11.147 12-15.808 0-6.792-8.875-8.306-12-2.944z\" fill=\"red\"/>\r\n<text x=\"50%\" y=\"47%\" font-size=\"10\" text-anchor=\"middle\" alignment-baseline=\"middle\" fill=\"white\" font-weight=\"bold\" font-family=\"monospace\">{0}</text>\r\n</svg>";
+        private string _webServerHtml = "HR: {HR}";
 
         private bool _useDiscord = true;
-        private string _discordActiveText = "Using my VRC Heart Rate Monitor!";
+        private string _discordActiveText = "AVG: {AVG} BPM";
         private string _discordIdleText = "Ideling with my VRC Heart Rate Monitor!";
-        private string _discordStateText = "{0} BPM";
+        private string _discordStateText = "HR: {HR} BPM";
 
         public MainForm()
         {
@@ -111,7 +111,7 @@ namespace VRChatHeartRateMonitor
             _oscAddress = RegistryHelper.GetValue("osc_address", _oscAddress);
 
             _useChatbox = RegistryHelper.GetValue("use_chatbox", _useChatbox);
-            _chatboxAppearance = ushort.Parse(RegistryHelper.GetValue("chatbox_appearance", _chatboxAppearance.ToString()));
+            _chatboxText = RegistryHelper.GetValue("chatbox_text", _chatboxText);
 
             _useAvatar = RegistryHelper.GetValue("use_avatar", _useAvatar);
             _avatarParameter = RegistryHelper.GetValue("avatar_parameter", _avatarParameter);
@@ -144,7 +144,7 @@ namespace VRChatHeartRateMonitor
                 _icons.Add(Icon.FromHandle(((Bitmap)smalIcon).GetHicon()));
             }
 
-            ResetIcons();
+            SetIcons(0);
         }
 
         private Image ScaleImage(Image image, int width, int height)
@@ -158,21 +158,13 @@ namespace VRChatHeartRateMonitor
             return scaledImage;
         }
 
-        private void ResetIcons()
-        {
-            this.Icon = _icons.ElementAt(0);
-            labelHeartRateDisplay.Visible = false;
-            notifyIcon.Icon = _icons.ElementAt(0);
-            notifyIcon.Text = "Status: Inactive";
-        }
-
         private void SetIcons(ushort heartRate)
         {
             this.Icon = _icons.ElementAt(heartRate);
-            labelHeartRateDisplay.Visible = true;
+            labelHeartRateDisplay.Visible = (heartRate > 0);
             labelHeartRateDisplay.Text = heartRate.ToString();
             notifyIcon.Icon = _icons.ElementAt(heartRate);
-            notifyIcon.Text = "Status: Active\nHeart Rate: " + heartRate;
+            notifyIcon.Text = "Status: " + (heartRate  > 0 ? "Active\nHeart Rate: " + heartRate : "Inactive");
         }
 
         private void InitializeForm()
@@ -188,7 +180,7 @@ namespace VRChatHeartRateMonitor
             checkBoxUseChatbox.Checked = _useChatbox;
             checkBoxUseChatbox_CheckedChanged(checkBoxUseChatbox, EventArgs.Empty);
 
-            comboBoxChatboxAppearance.SelectedIndex = _chatboxAppearance;
+            textBoxChatboxText.Text = _chatboxText;
 
             checkBoxUseAvatar.Checked = _useAvatar;
             checkBoxUseAvatar_CheckedChanged(checkBoxUseAvatar, EventArgs.Empty);
@@ -245,6 +237,7 @@ namespace VRChatHeartRateMonitor
             _heartbeatEffectTimer = new System.Windows.Forms.Timer();
             _heartbeatEffectTimer.Interval = 300;
             _heartbeatEffectTimer.Tick += HeartbeatEffectTimer_Tick;
+            _heartbeatEffectTimer.Start();
         }
 
         private async void HeartbeatEffectTimer_Tick(object sender, EventArgs e)
@@ -296,6 +289,7 @@ namespace VRChatHeartRateMonitor
             SafeInvoke(() => {
                 tabs.SelectedTab = tabMain;
                 tabs.Enabled = false;
+                buttonExecute.Font = new Font("Cascadia Mono", 20F);
                 buttonExecute.Text = "CONNECTING...";
                 buttonExecute.Enabled = false;
                 comboBoxDevices.Enabled = false;
@@ -306,6 +300,7 @@ namespace VRChatHeartRateMonitor
         {
             SafeInvoke(() => {
                 tabs.Enabled = true;
+                buttonExecute.Font = new Font("Cascadia Mono", 20F);
                 buttonExecute.Text = "DISCONNECT";
                 buttonExecute.Enabled = true;
                 _heartbeatEffectTimer.Start();
@@ -323,6 +318,7 @@ namespace VRChatHeartRateMonitor
             SafeInvoke(() => {
                 tabs.SelectedTab = tabMain;
                 tabs.Enabled = false;
+                buttonExecute.Font = new Font("Cascadia Mono", 20F);
                 buttonExecute.Text = "DISCONNECTING...";
                 buttonExecute.Enabled = false;
             });
@@ -332,17 +328,15 @@ namespace VRChatHeartRateMonitor
         {
             SafeInvoke(() => {
                 tabs.Enabled = true;
+                buttonExecute.Font = new Font("Cascadia Mono", 20F);
                 buttonExecute.Text = "CONNECT";
                 buttonExecute.Enabled = true;
-                _heartbeatEffectTimer.Stop();
                 _deviceHandler.StartScanning();
 
                 StopHandlers();
 
                 comboBoxDevices.Enabled = true;
                 labelBatteryLevel.Text = "";
-
-                ResetIcons();
             });
         }
 
@@ -376,15 +370,16 @@ namespace VRChatHeartRateMonitor
 
         private void AddDeviceToComboBox(ulong bluetoothDeviceAddress, string bluetoothDeviceName)
         {
-            if (_deviceMap.Count == 0)
-            {
-                comboBoxDevices.Items.RemoveAt(0);
-                buttonExecute.Enabled = true;
-            }
-
-
             if (!_deviceMap.ContainsKey(bluetoothDeviceAddress))
             {
+                if (_deviceMap.Count == 0)
+                {
+                    comboBoxDevices.Items.RemoveAt(0);
+                    buttonExecute.Font = new Font("Cascadia Mono", 20F);
+                    buttonExecute.Text = "CONNECT";
+                    buttonExecute.Enabled = true;
+                }
+
                 _deviceMap.Add(bluetoothDeviceAddress, bluetoothDeviceName);
                 comboBoxDevices.Items.Add(bluetoothDeviceName);
 
@@ -397,8 +392,9 @@ namespace VRChatHeartRateMonitor
                 if (_lastConnectedDeviceAddress == _deviceHandler.BluetoothAddressToString(bluetoothDeviceAddress))
                 {
                     comboBoxDevices.SelectedIndex = comboBoxDevices.Items.Count - 1;
-                    StartAutoConnectCountdown(bluetoothDeviceAddress);
                     comboBoxDevices.DroppedDown = false;
+
+                    StartAutoConnectCountdown(bluetoothDeviceAddress);
                 }
                 else if (comboBoxDevices.Items.Count == 1)
                 {
@@ -411,24 +407,27 @@ namespace VRChatHeartRateMonitor
         {
             _vrchatOscHandler = new VRChatOscHandler();
             _vrchatOscHandler.RequestHeartRate = (() => _deviceHandler.GetHeartRate());
+            _vrchatOscHandler.RequestAverageHeartRate = (() => _deviceHandler.GetAverageHeartRate());
         }
 
         private void InitializeWebServerHandler()
         {
             _webServerHandler = new WebServerHandler();
             _webServerHandler.RequestHeartRate = (() => _deviceHandler.GetHeartRate());
+            _webServerHandler.RequestAverageHeartRate = (() => _deviceHandler.GetAverageHeartRate());
         }
 
         private void InitializeDiscordHandler()
         {
             _discordHandler = new DiscordHandler();
             _discordHandler.RequestHeartRate = (() => _deviceHandler.GetHeartRate());
+            _discordHandler.RequestAverageHeartRate = (() => _deviceHandler.GetAverageHeartRate());
         }
 
         private void StartHandlers()
         {
             if (_useChatbox || _useAvatar)
-                _vrchatOscHandler.Start(_useChatbox, _chatboxAppearance, _useAvatar, _avatarParameter, _oscAddress);
+                _vrchatOscHandler.Start(_useChatbox, _chatboxText, _useAvatar, _avatarParameter, _oscAddress);
 
             if (_useWebServer)
                 _webServerHandler.Start(_webServerPort, _webServerHtml);
@@ -449,7 +448,7 @@ namespace VRChatHeartRateMonitor
                 _discordHandler.Stop();
         }
 
-        private async void StartAutoConnectCountdown(ulong bluetoothDeviceAddress)
+        private async Task StartAutoConnectCountdown(ulong bluetoothDeviceAddress)
         {
             _autoConnectCountdownCancellationToken = new CancellationTokenSource();
 
@@ -457,12 +456,15 @@ namespace VRChatHeartRateMonitor
             {
                 SafeInvoke(() => {
                     tabs.SelectedTab = tabMain;
-                    tabs.Enabled = false;
+                    comboBoxDevices.Enabled = false;
                 });
 
                 for (int i = 3; i > 0; i--)
                 {
-                    SafeInvoke(() => buttonExecute.Text = ("AUTO-CONNECT IN " + i + "S..."));
+                    SafeInvoke(() => {
+                        buttonExecute.Font = new Font("Cascadia Mono", 14F);
+                        buttonExecute.Text = ("AUTO-CONNECT IN " + i + "S... (CLICK TO CANCEL)");
+                    });
 
                     await Task.Delay(1000, _autoConnectCountdownCancellationToken.Token);
                 }
@@ -503,7 +505,7 @@ namespace VRChatHeartRateMonitor
 
         private void checkBoxUseChatbox_CheckedChanged(object sender, EventArgs e)
         {
-            comboBoxChatboxAppearance.Enabled = checkBoxUseChatbox.Checked;
+            textBoxChatboxText.ReadOnly = !checkBoxUseChatbox.Checked;
             textBoxOscAddress.ReadOnly = !(checkBoxUseChatbox.Checked || checkBoxUseAvatar.Checked);
         }
 
@@ -574,6 +576,11 @@ namespace VRChatHeartRateMonitor
                 e.Handled = true;
         }
 
+        private void buttonBoxChatboxTextInfo_Click(object sender, EventArgs e)
+        {
+            
+        }
+
         private void buttonAvatarParameterInfo_Click(object sender, EventArgs e)
         {
             HeartRateMonitor.InfoMessageBox($"To use this option you need to edit your VRChat avatar in Unity. New float paramater /avatar/parameters/{_avatarParameter} (from -1.0 to 1.0 - precision of 1/127) will be send through VRChat OSC. You need to add it to parameters, make sure that it's syncedm but not saved, and create animation which displays the heart rate. For more details about avatar configuration check Richard's video ;)");
@@ -602,8 +609,8 @@ namespace VRChatHeartRateMonitor
             _useChatbox = checkBoxUseChatbox.Checked;
             RegistryHelper.SetValue("use_chatbox", _useChatbox);
 
-            _chatboxAppearance = (ushort)comboBoxChatboxAppearance.SelectedIndex;
-            RegistryHelper.SetValue("chatbox_appearance", _chatboxAppearance);
+            _chatboxText = textBoxChatboxText.Text;
+            RegistryHelper.SetValue("chatbox_text", _chatboxText);
 
             _useAvatar = checkBoxUseAvatar.Checked;
             RegistryHelper.SetValue("use_avatar", _useAvatar);
@@ -642,16 +649,6 @@ namespace VRChatHeartRateMonitor
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            StopHandlers();
-
-            _vrchatOscHandler.RequestHeartRate = null;
-            _vrchatOscHandler = null;
-
-            _webServerHandler.RequestHeartRate = null;
-            _webServerHandler = null;
-
-            _discordHandler.RequestHeartRate = null;
-            _discordHandler = null;
 
             _deviceHandler.AdapterError -= DeviceManager_AdapterError;
             _deviceHandler.DeviceFound -= DeviceManager_DeviceFound;
@@ -668,6 +665,19 @@ namespace VRChatHeartRateMonitor
             else
                 _deviceHandler.StopScanning();
 
+            StopHandlers();
+
+            _vrchatOscHandler.RequestHeartRate = null;
+            _vrchatOscHandler.RequestAverageHeartRate = null;
+            _vrchatOscHandler = null;
+
+            _webServerHandler.RequestHeartRate = null;
+            _webServerHandler.RequestAverageHeartRate = null;
+            _webServerHandler = null;
+
+            _discordHandler.RequestHeartRate = null;
+            _discordHandler.RequestAverageHeartRate = null;
+            _discordHandler = null;
             _deviceHandler = null;
         }
 
@@ -703,6 +713,11 @@ namespace VRChatHeartRateMonitor
         private void linkLabelInfoProjectUrl_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start(new ProcessStartInfo("https://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor") { UseShellExecute = true });
+        }
+
+        private void linkLabelWebServerTemplateInstruction_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+
         }
     }
 }
