@@ -34,7 +34,33 @@ namespace VRChatHeartRateMonitor
                     else if (currentFilePath == oldVersionDirectoryFilePath && IsFileAvailable(newVersionTmpFilePath, TimeSpan.FromSeconds(10)))
                     {
                         File.Delete(newVersionTmpFilePath);
-                        SuccessMessageBox("Application updated successfully!");
+
+                        string[] chatboxAppearanceTemplates = {
+                            "♥",
+                            "💖",
+                            "💓",
+                            "💔",
+                            "💕",
+                            "💘"
+                        };
+
+                        ushort chatboxAppearance = ushort.Parse(RegistryHelper.GetValue("chatbox_appearance", "0"));
+                        RegistryHelper.SetValue("chatbox_text", chatboxAppearanceTemplates[chatboxAppearance] + " {HR} {I} (AVG {AVG})");
+
+                        RegistryHelper.SetValue("web_server_html", "HR: {HR}\r\nInstruction:\r\nhttps://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md");
+                        RegistryHelper.SetValue("discord_active_text", RegistryHelper.GetValue("discord_active_text", "AVG: {AVG} BPM").Replace("{0}", "{HR}"));
+                        RegistryHelper.SetValue("discord_state_text", RegistryHelper.GetValue("discord_state_text", "HR: {HR} BPM").Replace("{0}", "{HR}"));
+
+                        SuccessMessageBox(
+                            "Application updated successfully!\n\n" +
+                            "Here's what's new:\n" +
+                            "• Improved device connectivity handlin\n" +
+                            "• Fully customizable template-based chat template\n" +
+                            "• Average Heart Rate available in Chatbox, Discord and Web Server\n" +
+                            "• Added setup instructions for using Web Server with OBS and similar tools.\n\n" +
+                            "👉 Make sure to check your settings, especially if you're a streamer!"
+                        );
+
                         Process.Start(oldVersionDirectoryFilePath);
                     }
                     else
