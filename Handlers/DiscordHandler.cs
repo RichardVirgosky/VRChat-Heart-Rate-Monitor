@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using DiscordRPC;
 
@@ -24,7 +23,7 @@ namespace VRChatHeartRateMonitor
 
                 ushort? lastRenderedHeartRate = null;
 
-                while (!_client.IsDisposed)
+                while (_client != null && !_client.IsDisposed)
                 {
                     ushort currentHeartRate = RequestHeartRate();
                     ushort averageHeartRate = RequestAverageHeartRate();
@@ -61,6 +60,7 @@ namespace VRChatHeartRateMonitor
 
         public void Stop()
         {
+            _client?.Invoke();
             _client?.ClearPresence();
             _client?.Dispose();
             _client = null;

@@ -242,11 +242,14 @@ namespace VRChatHeartRateMonitor
 
         private async void HeartbeatEffectTimer_Tick(object sender, EventArgs e)
         {
-            for (int i = 0; i <= 1; i++)
+            if (_deviceHandler?.Status == DeviceHandler.DeviceStatus.Connected)
             {
-                int paddingValue = (i == 1 ? 0 : 4);
-                panelHeartRateDisplay.Padding = new Padding(0, paddingValue, 0, paddingValue);
-                await Task.Delay(_heartbeatEffectTimer.Interval / 2);
+                for (int i = 0; i <= 1; i++)
+                {
+                    int paddingValue = (i == 1 ? 0 : 4);
+                    panelHeartRateDisplay.Padding = new Padding(0, paddingValue, 0, paddingValue);
+                    await Task.Delay(_heartbeatEffectTimer.Interval / 2);
+                }
             }
         }
 
@@ -256,6 +259,7 @@ namespace VRChatHeartRateMonitor
             _deviceHandler.AdapterError += DeviceManager_AdapterError;
             _deviceHandler.DeviceFound += DeviceManager_DeviceFound;
             _deviceHandler.DeviceConnecting += DeviceManager_DeviceConnecting;
+            _deviceHandler.DeviceReconnecting += DeviceManager_DeviceReconnecting;
             _deviceHandler.DeviceConnected += DeviceManager_DeviceConnected;
             _deviceHandler.DeviceDisconnecting += DeviceManager_DeviceDisconnecting;
             _deviceHandler.DeviceDisconnected += DeviceManager_DeviceDisconnected;
@@ -296,20 +300,31 @@ namespace VRChatHeartRateMonitor
             });
         }
 
-        private void DeviceManager_DeviceConnected(ulong bluetoothDeviceAddress)
+        private void DeviceManager_DeviceReconnecting()
+        {
+            SafeInvoke(() => {
+                tabs.SelectedTab = tabMain;
+                buttonExecute.Font = new Font("Cascadia Mono", 14F);
+                buttonExecute.Text = "RECONNECTING... (CLICK TO CANCEL)";
+                comboBoxDevices.Enabled = false;
+            });
+        }
+
+        private void DeviceManager_DeviceConnected(ulong bluetoothDeviceAddress, bool reconnected)
         {
             SafeInvoke(() => {
                 tabs.Enabled = true;
                 buttonExecute.Font = new Font("Cascadia Mono", 20F);
                 buttonExecute.Text = "DISCONNECT";
                 buttonExecute.Enabled = true;
-                _heartbeatEffectTimer.Start();
-                _deviceHandler.StopScanning();
-
-                StartHandlers();
-
-                _lastConnectedDeviceAddress = _deviceHandler.BluetoothAddressToString(bluetoothDeviceAddress);
-                RegistryHelper.SetValue("last_connected_device_address", _lastConnectedDeviceAddress);
+                
+                if (!reconnected)
+                {
+                    _deviceHandler.StopScanning();
+                    StartHandlers();
+                    _lastConnectedDeviceAddress = _deviceHandler.BluetoothAddressToString(bluetoothDeviceAddress);
+                    RegistryHelper.SetValue("last_connected_device_address", _lastConnectedDeviceAddress);
+                }
             });
         }
 
@@ -485,11 +500,11 @@ namespace VRChatHeartRateMonitor
             {
                 _autoConnectCountdownCancellationToken.Cancel();
             }
-            else if (_deviceHandler.IsListening())
+            else if (_deviceHandler.Status == DeviceHandler.DeviceStatus.Connected)
             {
                 _deviceHandler.UnsubscribeFromDevice();
             }
-            else if(_deviceHandler.CanConnect())
+            else if (_deviceHandler.Status == DeviceHandler.DeviceStatus.Idle)
             {
                 ulong? selectedBluetoothDeviceAddress = _deviceMap.FirstOrDefault(d => d.Value == comboBoxDevices.SelectedItem.ToString()).Key;
 
@@ -500,6 +515,10 @@ namespace VRChatHeartRateMonitor
                 }
 
                 _deviceHandler.SubscribeToDevice((ulong)selectedBluetoothDeviceAddress);
+            }
+            else if (_deviceHandler.Status == DeviceHandler.DeviceStatus.Reconnecting)
+            {
+                _deviceHandler.ForceDisconnect();
             }
         }
 
@@ -598,7 +617,7 @@ namespace VRChatHeartRateMonitor
 
         private void buttonSaveSettings_Click(object sender, EventArgs e)
         {
-            if (_deviceHandler.IsListening())
+            if (_deviceHandler.Status == DeviceHandler.DeviceStatus.Connected)
             {
                 StopHandlers();
             }
@@ -641,18 +660,23 @@ namespace VRChatHeartRateMonitor
 
             HeartRateMonitor.SuccessMessageBox("Configuration saved!");
 
-            if (_deviceHandler.IsListening())
+            if (_deviceHandler.Status == DeviceHandler.DeviceStatus.Connected)
             {
                 StartHandlers();
             }
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private async void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            e.Cancel = true;
+            this.Enabled = false;
+            this.Visible = false;
+            this.FormClosing -= MainForm_FormClosing;
 
             _deviceHandler.AdapterError -= DeviceManager_AdapterError;
             _deviceHandler.DeviceFound -= DeviceManager_DeviceFound;
             _deviceHandler.DeviceConnecting -= DeviceManager_DeviceConnecting;
+            _deviceHandler.DeviceReconnecting -= DeviceManager_DeviceReconnecting;
             _deviceHandler.DeviceConnected -= DeviceManager_DeviceConnected;
             _deviceHandler.DeviceDisconnecting -= DeviceManager_DeviceDisconnecting;
             _deviceHandler.DeviceDisconnected -= DeviceManager_DeviceDisconnected;
@@ -660,10 +684,11 @@ namespace VRChatHeartRateMonitor
             _deviceHandler.HeartRateUpdated -= DeviceManager_HeartRateUpdated;
             _deviceHandler.BatteryLevelUpdated -= DeviceManager_BatteryLevelUpdated;
 
-            if (_deviceHandler.IsListening())
-                _deviceHandler.UnsubscribeFromDevice();
-            else
-                _deviceHandler.StopScanning();
+            if (_deviceHandler.Status != DeviceHandler.DeviceStatus.Idle)
+            {
+                await _deviceHandler.ForceDisconnect();
+                await Task.Delay(500);
+            }
 
             StopHandlers();
 
@@ -678,7 +703,11 @@ namespace VRChatHeartRateMonitor
             _discordHandler.RequestHeartRate = null;
             _discordHandler.RequestAverageHeartRate = null;
             _discordHandler = null;
+
+            _deviceHandler.StopScanning();
             _deviceHandler = null;
+
+            this.Close();
         }
 
         private void NotifyIcon_MouseClick(object sender, MouseEventArgs e)

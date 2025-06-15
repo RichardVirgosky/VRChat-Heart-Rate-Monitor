@@ -58,14 +58,18 @@ namespace VRChatHeartRateMonitor
 
                 MainForm mainForm = new MainForm();
 
-                if (!mainForm.IsDisposed)
-                    Application.Run(mainForm);
+                try
+                {
+                    if (!mainForm.IsDisposed)
+                        Application.Run(mainForm);
+                }
+                catch (NullReferenceException){}
 
                 _mutex.ReleaseMutex();
             }
             else
             {
-                ErrorMessageBox(GetAssemblyTitle() + " is already running!");
+                ErrorMessageBox(GetAssemblyTitle() + " is already running. If you recently closed it, please wait a moment for all background tasks to complete before reopening.");
                 return;
             }
         }
