@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Linq;
 using BuildSoft.VRChat.Osc;
 using BuildSoft.VRChat.Osc.Chatbox;
 using System.Threading;
