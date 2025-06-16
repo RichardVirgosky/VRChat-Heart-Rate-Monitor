@@ -137,7 +137,7 @@ namespace VRChatHeartRateMonitor
 
         private async Task<GattCharacteristic> GetHeartRateCharacteristic(bool reconnecting)
         {
-            for (int attempt = 0; attempt < 60; attempt++)
+            for (int attempt = 0; attempt < 60 && _allowDeviceToConnect; attempt++)
             {
                 GattCharacteristic heartRateCharacteristic = await GetCharacteristic(_heartRateServiceUuid, _heartRateCharacteristicUuid);
 
@@ -171,7 +171,7 @@ namespace VRChatHeartRateMonitor
 
         private async Task<bool> SubscibeToHeartRateCharacteristicNotifications()
         {
-            for (int attempt = 0; attempt < 60; attempt++)
+            for (int attempt = 0; attempt < 60 && _allowDeviceToConnect; attempt++)
             {
                 if (await SubscibeToCharacteristicNotifications(_heartRateCharacteristic))
                     return true;
