@@ -40,6 +40,7 @@ namespace VRChatHeartRateMonitor
 
         private bool _useAvatar = false;
         private string _avatarParameter = "heartRate";
+        private bool _avatarParameterIsFloat = true;
 
         private bool _useWebServer = false;
         private ushort _webServerPort = 6969;
@@ -115,6 +116,7 @@ namespace VRChatHeartRateMonitor
 
             _useAvatar = RegistryHelper.GetValue("use_avatar", _useAvatar);
             _avatarParameter = RegistryHelper.GetValue("avatar_parameter", _avatarParameter);
+            _avatarParameterIsFloat = RegistryHelper.GetValue("avatar_parameter_is_float", _avatarParameterIsFloat);
 
             _useWebServer = RegistryHelper.GetValue("use_web_server", _useWebServer);
             _webServerPort = ushort.Parse(RegistryHelper.GetValue("web_server_port", _webServerPort.ToString()));
@@ -187,6 +189,8 @@ namespace VRChatHeartRateMonitor
 
             textBoxAvatarParameter.Text = _avatarParameter;
             textBoxAvatarParameter.KeyPress += new KeyPressEventHandler(textBox_KeyPressAlphanumeric);
+
+            (_avatarParameterIsFloat ? radioButtonAvatarParameterTypeFloat : radioButtonAvatarParameterTypeInt).Checked = true;
 
             checkBoxUseWebServer.Checked = _useWebServer;
             checkBoxUseWebServer_CheckedChanged(checkBoxUseWebServer, EventArgs.Empty);
@@ -443,7 +447,7 @@ namespace VRChatHeartRateMonitor
         private void StartHandlers()
         {
             if (_useChatbox || _useAvatar)
-                _vrchatOscHandler.Start(_useChatbox, _chatboxText, _useAvatar, _avatarParameter, _oscAddress);
+                _vrchatOscHandler.Start(_useChatbox, _chatboxText, _useAvatar, _avatarParameter, _avatarParameterIsFloat, _oscAddress);
 
             if (_useWebServer)
                 _webServerHandler.Start(_webServerPort, _webServerHtml);
@@ -532,6 +536,8 @@ namespace VRChatHeartRateMonitor
         private void checkBoxUseAvatar_CheckedChanged(object sender, EventArgs e)
         {
             textBoxAvatarParameter.ReadOnly = !checkBoxUseAvatar.Checked;
+            radioButtonAvatarParameterTypeFloat.Enabled = checkBoxUseAvatar.Checked;
+            radioButtonAvatarParameterTypeInt.Enabled = checkBoxUseAvatar.Checked;
             textBoxOscAddress.ReadOnly = !(checkBoxUseChatbox.Checked || checkBoxUseAvatar.Checked);
         }
 
@@ -617,10 +623,10 @@ namespace VRChatHeartRateMonitor
         {
             HeartRateMonitor.InfoMessageBox(
                 "To use this feature, you need to edit your VRChat avatar in Unity.\n\n" +
-                $"A new parameter named \"/avatar/parameters/{_avatarParameter}\" will be sent via OSC in two formats:\n" +
+                $"A new parameter named \"/avatar/parameters/{_avatarParameter}\" will be sent via OSC in one of two types:\n" +
                 "  - FLOAT: Range -1.0 to 1.0 (with ~1/127 precision)\n" +
-                "  - INT: Range 0 to 255\n\n" +
-                "Both are sent using the same parameter name. VRChat will use whichever type your avatar is set up to receive or even both, depending on your setup.\n\n" +
+                "  - INT: Range 0 to 254\n\n" +
+                "Make sure to select the type that matches your avatar's setup.\n\n" +
                 "To set it up correctly:\n" +
                 "  - Add the parameter to your avatar's Parameters list.\n" +
                 "  - Make sure it's SYNCED, but NOT SAVED.\n" +
@@ -678,6 +684,9 @@ namespace VRChatHeartRateMonitor
 
             _avatarParameter = textBoxAvatarParameter.Text;
             RegistryHelper.SetValue("avatar_parameter", _avatarParameter);
+
+            _avatarParameterIsFloat = radioButtonAvatarParameterTypeFloat.Checked;
+            RegistryHelper.SetValue("avatar_parameter_is_float", _avatarParameterIsFloat);
 
             _useWebServer = checkBoxUseWebServer.Checked;
             RegistryHelper.SetValue("use_web_server", _useWebServer);

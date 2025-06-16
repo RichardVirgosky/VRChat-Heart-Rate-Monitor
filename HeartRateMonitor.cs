@@ -55,7 +55,8 @@ namespace VRChatHeartRateMonitor
                             "Application updated successfully!\n\n" +
                             "Here's what's new:\n" +
                             "• Improved device connectivity handling\n" +
-                            "• Fully customizable template-based chat template\n" +
+                            "• Fully customizable chatbox template\n" +
+                            "• Toggle to switch avatar parameter type between FLOAT and INT\n" +
                             "• Average Heart Rate available in Chatbox, Discord and Web Server\n" +
                             "• Added setup instructions for using Web Server with OBS and similar tools.\n\n" +
                             "👉 Make sure to check your settings, especially if you're a streamer!"

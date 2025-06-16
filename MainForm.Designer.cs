@@ -44,6 +44,9 @@ namespace VRChatHeartRateMonitor
             this.labelHeartRateDisplay = new System.Windows.Forms.Label();
             this.pictureBoxHeartRateDisplay = new System.Windows.Forms.PictureBox();
             this.tabVRChatSettings = new System.Windows.Forms.TabPage();
+            this.panelAvatarParameterType = new System.Windows.Forms.Panel();
+            this.radioButtonAvatarParameterTypeFloat = new System.Windows.Forms.RadioButton();
+            this.radioButtonAvatarParameterTypeInt = new System.Windows.Forms.RadioButton();
             this.panelAvatar = new System.Windows.Forms.Panel();
             this.buttonAvatarParameterInfo = new System.Windows.Forms.Button();
             this.textBoxAvatarParameter = new System.Windows.Forms.TextBox();
@@ -101,6 +104,7 @@ namespace VRChatHeartRateMonitor
             this.panelHeartRateDisplay.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxHeartRateDisplay)).BeginInit();
             this.tabVRChatSettings.SuspendLayout();
+            this.panelAvatarParameterType.SuspendLayout();
             this.panelAvatar.SuspendLayout();
             this.panelChatbox.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -264,6 +268,7 @@ namespace VRChatHeartRateMonitor
             // tabVRChatSettings
             // 
             this.tabVRChatSettings.BackColor = System.Drawing.Color.White;
+            this.tabVRChatSettings.Controls.Add(this.panelAvatarParameterType);
             this.tabVRChatSettings.Controls.Add(this.panelAvatar);
             this.tabVRChatSettings.Controls.Add(this.checkBoxUseAvatar);
             this.tabVRChatSettings.Controls.Add(this.panelChatbox);
@@ -279,6 +284,44 @@ namespace VRChatHeartRateMonitor
             this.tabVRChatSettings.TabIndex = 1;
             this.tabVRChatSettings.Text = "VRChat";
             // 
+            // panelAvatarParameterType
+            // 
+            this.panelAvatarParameterType.Controls.Add(this.radioButtonAvatarParameterTypeFloat);
+            this.panelAvatarParameterType.Controls.Add(this.radioButtonAvatarParameterTypeInt);
+            this.panelAvatarParameterType.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelAvatarParameterType.Location = new System.Drawing.Point(1, 174);
+            this.panelAvatarParameterType.Name = "panelAvatarParameterType";
+            this.panelAvatarParameterType.Size = new System.Drawing.Size(522, 25);
+            this.panelAvatarParameterType.TabIndex = 13;
+            // 
+            // radioButtonAvatarParameterTypeFloat
+            // 
+            this.radioButtonAvatarParameterTypeFloat.AutoSize = true;
+            this.radioButtonAvatarParameterTypeFloat.Dock = System.Windows.Forms.DockStyle.Right;
+            this.radioButtonAvatarParameterTypeFloat.Font = new System.Drawing.Font("Cascadia Mono", 9F);
+            this.radioButtonAvatarParameterTypeFloat.Location = new System.Drawing.Point(366, 0);
+            this.radioButtonAvatarParameterTypeFloat.Name = "radioButtonAvatarParameterTypeFloat";
+            this.radioButtonAvatarParameterTypeFloat.Padding = new System.Windows.Forms.Padding(0, 0, 15, 0);
+            this.radioButtonAvatarParameterTypeFloat.Size = new System.Drawing.Size(75, 25);
+            this.radioButtonAvatarParameterTypeFloat.TabIndex = 0;
+            this.radioButtonAvatarParameterTypeFloat.TabStop = true;
+            this.radioButtonAvatarParameterTypeFloat.Text = "FLOAT";
+            this.radioButtonAvatarParameterTypeFloat.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonAvatarParameterTypeInt
+            // 
+            this.radioButtonAvatarParameterTypeInt.AutoSize = true;
+            this.radioButtonAvatarParameterTypeInt.Dock = System.Windows.Forms.DockStyle.Right;
+            this.radioButtonAvatarParameterTypeInt.Font = new System.Drawing.Font("Cascadia Mono", 9F);
+            this.radioButtonAvatarParameterTypeInt.Location = new System.Drawing.Point(441, 0);
+            this.radioButtonAvatarParameterTypeInt.Name = "radioButtonAvatarParameterTypeInt";
+            this.radioButtonAvatarParameterTypeInt.Padding = new System.Windows.Forms.Padding(0, 0, 35, 0);
+            this.radioButtonAvatarParameterTypeInt.Size = new System.Drawing.Size(81, 25);
+            this.radioButtonAvatarParameterTypeInt.TabIndex = 1;
+            this.radioButtonAvatarParameterTypeInt.TabStop = true;
+            this.radioButtonAvatarParameterTypeInt.Text = "INT";
+            this.radioButtonAvatarParameterTypeInt.UseVisualStyleBackColor = true;
+            // 
             // panelAvatar
             // 
             this.panelAvatar.Controls.Add(this.buttonAvatarParameterInfo);
@@ -287,7 +330,7 @@ namespace VRChatHeartRateMonitor
             this.panelAvatar.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelAvatar.Location = new System.Drawing.Point(1, 147);
             this.panelAvatar.Name = "panelAvatar";
-            this.panelAvatar.Size = new System.Drawing.Size(522, 33);
+            this.panelAvatar.Size = new System.Drawing.Size(522, 27);
             this.panelAvatar.TabIndex = 8;
             // 
             // buttonAvatarParameterInfo
@@ -320,7 +363,7 @@ namespace VRChatHeartRateMonitor
             this.labelAvatarParameter.Location = new System.Drawing.Point(0, 0);
             this.labelAvatarParameter.Name = "labelAvatarParameter";
             this.labelAvatarParameter.Padding = new System.Windows.Forms.Padding(8, 3, 0, 0);
-            this.labelAvatarParameter.Size = new System.Drawing.Size(348, 33);
+            this.labelAvatarParameter.Size = new System.Drawing.Size(348, 27);
             this.labelAvatarParameter.TabIndex = 4;
             this.labelAvatarParameter.Text = "Set avatar parameter name: /avatar/parameters/";
             // 
@@ -957,6 +1000,8 @@ namespace VRChatHeartRateMonitor
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxHeartRateDisplay)).EndInit();
             this.tabVRChatSettings.ResumeLayout(false);
             this.tabVRChatSettings.PerformLayout();
+            this.panelAvatarParameterType.ResumeLayout(false);
+            this.panelAvatarParameterType.PerformLayout();
             this.panelAvatar.ResumeLayout(false);
             this.panelAvatar.PerformLayout();
             this.panelChatbox.ResumeLayout(false);
@@ -1056,6 +1101,9 @@ namespace VRChatHeartRateMonitor
         private System.Windows.Forms.Label labelWebServerHtml;
         private System.Windows.Forms.LinkLabel linkLabelWebServerTemplateInstruction;
         private System.Windows.Forms.TextBox textBoxWebServerHtml;
+        private System.Windows.Forms.Panel panelAvatarParameterType;
+        private System.Windows.Forms.RadioButton radioButtonAvatarParameterTypeFloat;
+        private System.Windows.Forms.RadioButton radioButtonAvatarParameterTypeInt;
     }
 }
 

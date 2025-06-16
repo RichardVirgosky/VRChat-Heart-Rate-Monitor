@@ -14,7 +14,7 @@ namespace VRChatHeartRateMonitor
         public Func<ushort> RequestHeartRate { get; set; }
         public Func<ushort> RequestAverageHeartRate { get; set; }
 
-        public async void Start(bool useChatbox, string chatboxText, bool useAvatar, string avatarParameter, string oscAddress)
+        public async void Start(bool useChatbox, string chatboxText, bool useAvatar, string avatarParameter, bool avatarParameterIsFloat, string oscAddress)
         {
             _cancellationTokenSource = new CancellationTokenSource();
 
@@ -50,8 +50,7 @@ namespace VRChatHeartRateMonitor
 
                 if (useAvatar && lastAvatarHeartRate != currentHeartRate)
                 {
-                    OscParameter.SendAvatarParameter(avatarParameter, (int)currentHeartRate);
-                    OscParameter.SendAvatarParameter(avatarParameter, (currentHeartRate - 127f) / 127f);
+                    OscParameter.SendAvatarParameter(avatarParameter, (avatarParameterIsFloat ? (currentHeartRate - 127f) / 127f : (int)currentHeartRate));
 
                     lastAvatarHeartRate = currentHeartRate;
                 }
