@@ -35,32 +35,47 @@ namespace VRChatHeartRateMonitor
                     {
                         File.Delete(newVersionTmpFilePath);
 
-                        string[] chatboxAppearanceTemplates = {
-                            "♥",
-                            "💖",
-                            "💓",
-                            "💔",
-                            "💕",
-                            "💘"
-                        };
+                        if (RegistryHelper.GetValue<string>("chatbox_text", null) == null)
+                        {
+                            string[] chatboxAppearanceTemplates = {
+                                "♥",
+                                "💖",
+                                "💓",
+                                "💔",
+                                "💕",
+                                "💘"
+                            };
 
-                        ushort chatboxAppearance = ushort.Parse(RegistryHelper.GetValue("chatbox_appearance", "0"));
-                        RegistryHelper.SetValue("chatbox_text", chatboxAppearanceTemplates[chatboxAppearance] + " {HR} {I} (AVG {AVG})");
+                            ushort chatboxAppearance = ushort.Parse(RegistryHelper.GetValue("chatbox_appearance", "0"));
+                            RegistryHelper.SetValue("chatbox_text", chatboxAppearanceTemplates[chatboxAppearance] + " {HR} {I} (AVG {AVG})");
 
-                        RegistryHelper.SetValue("web_server_html", "HR: {HR}\r\nInstruction:\r\nhttps://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md");
-                        RegistryHelper.SetValue("discord_active_text", RegistryHelper.GetValue("discord_active_text", "AVG: {AVG} BPM").Replace("{0}", "{HR}"));
-                        RegistryHelper.SetValue("discord_state_text", RegistryHelper.GetValue("discord_state_text", "HR: {HR} BPM").Replace("{0}", "{HR}"));
+                            RegistryHelper.SetValue("web_server_html", "HR: {HR}\r\nInstruction:\r\nhttps://github.com/RichardVirgosky/VRChat-Heart-Rate-Monitor/blob/main/README_WEB_SERVER.md");
+                            RegistryHelper.SetValue("discord_active_text", RegistryHelper.GetValue("discord_active_text", "AVG: {AVG} BPM").Replace("{0}", "{HR}"));
+                            RegistryHelper.SetValue("discord_state_text", RegistryHelper.GetValue("discord_state_text", "HR: {HR} BPM").Replace("{0}", "{HR}"));
 
-                        SuccessMessageBox(
-                            "Application updated successfully!\n\n" +
-                            "Here's what's new:\n" +
-                            "• Improved device connectivity handling\n" +
-                            "• Fully customizable chatbox template\n" +
-                            "• Toggle to switch avatar parameter type between FLOAT and INT\n" +
-                            "• Average Heart Rate available in Chatbox, Discord and Web Server\n" +
-                            "• Added setup instructions for using Web Server with OBS and similar tools.\n\n" +
-                            "👉 Make sure to check your settings, especially if you're a streamer!"
-                        );
+                            SuccessMessageBox(
+                                "Application updated successfully!\n\n" +
+                                "Here's what's new:\n" +
+                                "• Improved device connectivity handling\n" +
+                                "• Fully customizable chatbox template\n" +
+                                "• Toggle to switch avatar parameter type between FLOAT and INT\n" +
+                                "• Average Heart Rate available in Chatbox, Discord and Web Server\n" +
+                                "• Added setup instructions for using Web Server with OBS and similar tools.\n\n" +
+                                "👉 Make sure to check your settings, especially if you're a streamer!"
+                            );
+                        }
+                        else 
+                        {
+                            SuccessMessageBox(
+                                "Application updated successfully!\n\n" +
+                                "You're now running the latest version.\n\n" +
+                                "💬 Have questions or feedback?\n" +
+                                "Join our Discord community to get help, share ideas, or report issues!\n\n" +
+                                "👉 https://virgosky.com/dc"
+                            );
+                        }
+
+                        RegistryHelper.SetValue("last_version", HeartRateMonitor.GetAssemblyVersion());
 
                         Process.Start(oldVersionDirectoryFilePath);
                     }
