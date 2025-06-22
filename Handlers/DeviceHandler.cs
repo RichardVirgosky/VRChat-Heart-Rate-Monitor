@@ -43,6 +43,7 @@ namespace VRChatHeartRateMonitor
         private string _errorMessage = null;
 
         public event Action AdapterError;
+        public event Action AdapterTimeout;
         public event Action<ulong, string> DeviceFound;
         public event Action DeviceConnecting;
         public event Action DeviceReconnecting;
@@ -68,6 +69,8 @@ namespace VRChatHeartRateMonitor
             };
 
             _bluetoothLEAdvertisementWatcher.Received += async (sender, args) => await OnAdvertisementReceivedAsync(args);
+
+            StartScanning();
         }
 
         public void StartScanning()
@@ -86,16 +89,25 @@ namespace VRChatHeartRateMonitor
         {
             try
             {
-                BluetoothLEDevice bluetoothDevice = await BluetoothLEDevice.FromBluetoothAddressAsync(args.BluetoothAddress);
+                var getBluetoothDeviceTask = BluetoothLEDevice.FromBluetoothAddressAsync(args.BluetoothAddress).AsTask();
 
-                if (bluetoothDevice != null)
+                if (await Task.WhenAny(getBluetoothDeviceTask, Task.Delay(10000)) == getBluetoothDeviceTask)
                 {
-                    var result = await bluetoothDevice.GetGattServicesForUuidAsync(_heartRateServiceUuid);
+                    BluetoothLEDevice bluetoothDevice = getBluetoothDeviceTask.Result;
 
-                    if (result.Status == GattCommunicationStatus.Success && result.Services.Count > 0)
+                    if (bluetoothDevice != null)
                     {
-                        DeviceFound?.Invoke(bluetoothDevice.BluetoothAddress, GetDeviceName(bluetoothDevice));
+                        var result = await bluetoothDevice.GetGattServicesForUuidAsync(_heartRateServiceUuid);
+
+                        if (result.Status == GattCommunicationStatus.Success && result.Services.Count > 0)
+                        {
+                            DeviceFound?.Invoke(bluetoothDevice.BluetoothAddress, GetDeviceName(bluetoothDevice));
+                        }
                     }
+                }
+                else
+                {
+                    AdapterTimeout?.Invoke();
                 }
             }
             catch (Exception){}
@@ -241,6 +253,8 @@ namespace VRChatHeartRateMonitor
 
                     _heartRateList.Clear();
                     _batteryLevel = 0;
+
+                    StopScanning();
                 }
 
                 _device = await BluetoothLEDevice.FromBluetoothAddressAsync(bluetoothDeviceAddress);
@@ -371,6 +385,8 @@ namespace VRChatHeartRateMonitor
 
             DeviceDisconnected?.Invoke();
             _status = DeviceStatus.Idle;
+
+            StartScanning();
         }
 
         public async Task ForceDisconnect()

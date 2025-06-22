@@ -261,6 +261,7 @@ namespace VRChatHeartRateMonitor
         {
             _deviceHandler = new DeviceHandler();
             _deviceHandler.AdapterError += DeviceManager_AdapterError;
+            _deviceHandler.AdapterTimeout += DeviceManager_AdapterTimeout;
             _deviceHandler.DeviceFound += DeviceManager_DeviceFound;
             _deviceHandler.DeviceConnecting += DeviceManager_DeviceConnecting;
             _deviceHandler.DeviceReconnecting += DeviceManager_DeviceReconnecting;
@@ -273,8 +274,6 @@ namespace VRChatHeartRateMonitor
 
             comboBoxDevices.Items.Add("Scanning for Bluetooth Devices...");
             comboBoxDevices.SelectedIndex = 0;
-
-            _deviceHandler.StartScanning();
         }
 
         private void DeviceManager_AdapterError()
@@ -284,6 +283,26 @@ namespace VRChatHeartRateMonitor
                     _deviceHandler.StartScanning();
                 else
                     this.Close();
+            });
+        }
+
+        private void DeviceManager_AdapterTimeout()
+        {
+            SafeInvoke(() => {
+                _deviceHandler.AdapterTimeout -= DeviceManager_AdapterTimeout;
+
+                if (_deviceMap.Count == 0)
+                    HeartRateMonitor.ErrorMessageBox(
+                        "Bluetooth communication timeout.\n\n" +
+                        "This issue often happens when the Bluetooth adapter fails to respond in time, typically due to driver-related problems or unstable Windows Bluetooth handling.\n\n" +
+                        "Please try the following steps:\n" +
+                        "• Make sure your Bluetooth adapter is enabled\n" +
+                        "• Toggle Bluetooth off and back on\n" +
+                        "• Replug the adapter if it's USB-based\n" +
+                        "• Ensure your Bluetooth drivers are up to date\n\n" +
+                        "If none of the above work, restarting your PC will resolve the issue.\n\n" +
+                        "We're actively investigating this problem. If it happens again, please report it on our Discord along with any details about when it occurred."
+                    );
             });
         }
 
@@ -324,7 +343,6 @@ namespace VRChatHeartRateMonitor
                 
                 if (!reconnected)
                 {
-                    _deviceHandler.StopScanning();
                     StartHandlers();
                     _lastConnectedDeviceAddress = _deviceHandler.BluetoothAddressToString(bluetoothDeviceAddress);
                     RegistryHelper.SetValue("last_connected_device_address", _lastConnectedDeviceAddress);
@@ -350,7 +368,6 @@ namespace VRChatHeartRateMonitor
                 buttonExecute.Font = new Font("Cascadia Mono", 20F);
                 buttonExecute.Text = "CONNECT";
                 buttonExecute.Enabled = true;
-                _deviceHandler.StartScanning();
 
                 StopHandlers();
 
@@ -725,6 +742,7 @@ namespace VRChatHeartRateMonitor
             this.FormClosing -= MainForm_FormClosing;
 
             _deviceHandler.AdapterError -= DeviceManager_AdapterError;
+            _deviceHandler.AdapterTimeout -= DeviceManager_AdapterTimeout;
             _deviceHandler.DeviceFound -= DeviceManager_DeviceFound;
             _deviceHandler.DeviceConnecting -= DeviceManager_DeviceConnecting;
             _deviceHandler.DeviceReconnecting -= DeviceManager_DeviceReconnecting;
