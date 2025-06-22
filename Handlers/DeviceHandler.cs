@@ -63,9 +63,13 @@ namespace VRChatHeartRateMonitor
 
         public DeviceHandler()
         {
+            BluetoothLEAdvertisementFilter bluetoothLEAdvertisementFilter = new BluetoothLEAdvertisementFilter();
+            bluetoothLEAdvertisementFilter.Advertisement.ServiceUuids.Add(_heartRateServiceUuid);
+
             _bluetoothLEAdvertisementWatcher = new BluetoothLEAdvertisementWatcher
             {
-                ScanningMode = BluetoothLEScanningMode.Active
+                ScanningMode = BluetoothLEScanningMode.Active,
+                AdvertisementFilter = bluetoothLEAdvertisementFilter
             };
 
             _bluetoothLEAdvertisementWatcher.Received += async (sender, args) => await OnAdvertisementReceivedAsync(args);
